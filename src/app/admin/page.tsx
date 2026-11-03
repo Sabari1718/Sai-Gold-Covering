@@ -481,13 +481,13 @@ export default function AdminPage() {
   // Filtered products in Manage tab
   const managedProducts = useMemo(() => {
     return products.filter((p) => {
+      if (!p || !p.id) return false;
       const matchCat = filterCategory === 'all' || p.category === filterCategory;
       const q = searchQuery.toLowerCase().trim();
-      const matchQ =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        p.subcategory.toLowerCase().includes(q);
+      const name = p.name ? p.name.toLowerCase() : '';
+      const id = p.id ? p.id.toLowerCase() : '';
+      const sub = p.subcategory ? p.subcategory.toLowerCase() : '';
+      const matchQ = !q || name.includes(q) || id.includes(q) || sub.includes(q);
       return matchCat && matchQ;
     });
   }, [products, filterCategory, searchQuery]);
@@ -1293,19 +1293,25 @@ export default function AdminPage() {
                         {/* Thumbnail */}
                         <td className="py-3 px-4">
                           <div className="relative w-12 h-12 border border-[#E8D8C8] bg-[#FAF2E6] overflow-hidden shrink-0">
-                            <Image
-                              src={p.image}
-                              alt={p.name}
-                              fill
-                              unoptimized={p.image.startsWith('data:')}
-                              className="object-cover"
-                            />
+                            {p.image ? (
+                              <Image
+                                src={p.image}
+                                alt={p.name || 'Product'}
+                                fill
+                                unoptimized={typeof p.image === 'string' && p.image.startsWith('data:')}
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[10px] text-[#8E7A70]">
+                                No img
+                              </div>
+                            )}
                           </div>
                         </td>
 
                         {/* Name and ID */}
                         <td className="py-3 px-4 max-w-xs">
-                          <p className="font-bold text-[#33241F] truncate">{p.name}</p>
+                          <p className="font-bold text-[#33241F] truncate">{p.name || 'Unnamed'}</p>
                           <p className="text-[10px] text-[#8E7A70] font-mono">{p.id}</p>
                           {p.isNewArrival && (
                             <span className="inline-block mt-0.5 px-1.5 py-0.2 bg-[#591B2B] text-white text-[9px] font-bold uppercase tracking-wider mr-1">
@@ -1321,8 +1327,8 @@ export default function AdminPage() {
 
                         {/* Category */}
                         <td className="py-3 px-4">
-                          <p className="font-medium text-[#591B2B]">{p.categoryLabel}</p>
-                          <p className="text-[11px] text-[#8E7A70]">{p.subcategory}</p>
+                          <p className="font-medium text-[#591B2B]">{p.categoryLabel || p.category || 'Jewellery'}</p>
+                          <p className="text-[11px] text-[#8E7A70]">{p.subcategory || ''}</p>
                         </td>
 
                         {/* Price & Quick Edit */}

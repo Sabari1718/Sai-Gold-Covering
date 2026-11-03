@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "SGC-001",
+    "name": "Test 2"
+  },
+  {
+    "id": "SGC-002",
+    "name": "Bangle"
+  }
+]

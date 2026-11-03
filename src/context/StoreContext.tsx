@@ -79,7 +79,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       // Filter and modify custom products
       const activeCustom = customProducts
-        .filter((p) => !deletedIds.includes(p.id))
+        .filter((p) => p && p.id && p.name && p.image && !deletedIds.includes(p.id))
         .map((p) => (modifiedMap[p.id] ? { ...p, ...modifiedMap[p.id] } : p));
 
       // Merge: Newest custom products first, then active base products (deduplicated)
@@ -152,10 +152,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             // Merge cloud products and local products cleanly
             const map = new Map<string, Product>();
             data.products.forEach((p: Product) => {
-              if (p && p.id && !deletedIds.includes(p.id)) map.set(p.id, p);
+              if (p && p.id && p.name && p.image && !deletedIds.includes(p.id)) map.set(p.id, p);
             });
             currentCustom.forEach((p: Product) => {
-              if (p && p.id && !deletedIds.includes(p.id) && !map.has(p.id)) map.set(p.id, p);
+              if (p && p.id && p.name && p.image && !deletedIds.includes(p.id) && !map.has(p.id)) map.set(p.id, p);
             });
 
             const merged = Array.from(map.values());
