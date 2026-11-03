@@ -57,3 +57,15 @@ export type SortOption =
   | 'popular'
   | 'price-asc'
   | 'price-desc';
+
+export interface ProductReview {
+  id: string;
+  productId: string;
+  userName: string;
+  userCity?: string;
+  rating: number;
+  title: string;
+  comment: string;
+  createdAt: string;
+  isVerifiedBuyer: boolean;
+}

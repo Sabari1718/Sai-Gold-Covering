@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductInfo from '@/components/product/ProductInfo';
+import ProductReviewsSection from '@/components/product/ProductReviewsSection';
 import ProductCard from '@/components/common/ProductCard';
 import SectionHeader from '@/components/common/SectionHeader';
 import type { Product } from '@/types';
@@ -68,10 +69,13 @@ export default function ProductDetailClient({ initialProduct, slug }: Props) {
         </nav>
 
         {/* Gallery Left + Info Right Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 mb-20 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 mb-12 items-start">
           <ProductGallery images={product.gallery} name={product.name} />
           <ProductInfo product={product} />
         </div>
+
+        {/* Customer Ratings & Reviews (Flipkart Style) */}
+        <ProductReviewsSection product={product} />
 
         {/* Related Products */}
         {related.length > 0 && (

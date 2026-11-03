@@ -6,7 +6,7 @@ import { useStore } from '@/context/StoreContext';
 import { formatPrice } from '@/data/products';
 import { WHATSAPP_ORDER_URL } from '@/lib/config';
 import type { Product } from '@/types';
-import { Heart, ShoppingBag, MessageCircle, Check, ShieldCheck, Sparkles, MapPin } from 'lucide-react';
+import { Heart, ShoppingBag, MessageCircle, Check, ShieldCheck, Sparkles, MapPin, Star } from 'lucide-react';
 
 interface Props {
   product: Product;
@@ -57,11 +57,25 @@ export default function ProductInfo({ product }: Props) {
 
       {/* Name */}
       <h1
-        className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#591B2B] mb-4 leading-tight"
+        className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#591B2B] mb-2 leading-tight"
         style={{ fontFamily: 'var(--font-playfair)' }}
       >
         {product.name}
       </h1>
+
+      {/* Flipkart-style Rating Pill & Review Link */}
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#388E3C] text-white text-xs font-bold rounded shadow-sm">
+          <span>4.9</span>
+          <Star size={11} className="fill-white" />
+        </span>
+        <span className="text-xs font-semibold text-[#8E7A70]">
+          Verified Customer Ratings &amp; Reviews
+        </span>
+        <span className="text-xs text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+          ✓ In-Store &amp; Online Tested
+        </span>
+      </div>
 
       {/* Price & Taxes */}
       <div className="flex items-baseline gap-3 mb-5">
