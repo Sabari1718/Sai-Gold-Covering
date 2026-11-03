@@ -161,18 +161,18 @@ export default function HeroSection() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="relative p-2.5 bg-gradient-to-b from-[#ECC880] via-[#D3AA57] to-[#B88E3E] shadow-2xl"
             >
-              <div className="relative aspect-[4/3] sm:aspect-[16/11] overflow-hidden group bg-white border border-[#FFF9F0]">
+              <div className="relative aspect-[16/10] min-h-[250px] sm:min-h-[290px] overflow-hidden group bg-white border border-[#FFF9F0]">
                 <Image
-                  src="/images/products/necklaces/bridal-necklace-set.jpg"
-                  alt="Bridal and temple gold covering jewellery"
+                  src="/images/hero/hero-bridal-set.jpg"
+                  alt="Grand Bridal and temple gold covering jewellery set"
                   fill
                   priority
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"
-                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                 />
 
                 {/* Dark Vignette Overlay for Text Legibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#14050C]/90 via-transparent to-black/25" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#14050C]/90 via-transparent to-black/25 pointer-events-none" />
 
                 {/* Top Corner Badge */}
                 <div className="absolute top-3 left-3 bg-[#591B2B] text-white border border-[#D3AA57] px-3 py-1 flex items-center gap-1.5 shadow-md">
@@ -211,13 +211,16 @@ export default function HeroSection() {
               className="grid grid-cols-2 gap-3.5 mt-3.5"
             >
               {/* Colourful Bangles */}
-              <div className="relative aspect-[4/3] p-1.5 bg-white border-2 border-[#D3AA57] shadow-xl group overflow-hidden">
+              <Link
+                href="/categories/bangles"
+                className="relative aspect-[4/3] p-1.5 bg-white border-2 border-[#D3AA57] shadow-xl group overflow-hidden block"
+              >
                 <div className="relative w-full h-full overflow-hidden bg-[#FAF2E6]">
                   <Image
-                    src="/images/products/bangles/colourful-glass-bangles.jpg"
-                    alt="Colourful glass and gold bangles"
+                    src="/images/hero/hero-bangles.jpg"
+                    alt="Colourful designer glass and gold bangles"
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-108"
+                    className="object-cover object-center transition-transform duration-700 group-hover:scale-108"
                     sizes="(max-width: 1024px) 50vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#33241F]/85 via-transparent to-transparent flex items-end p-2.5">
@@ -231,16 +234,19 @@ export default function HeroSection() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
 
               {/* Velvet Lipsticks & Cosmetics */}
-              <div className="relative aspect-[4/3] p-1.5 bg-white border-2 border-[#D3AA57] shadow-xl group overflow-hidden">
+              <Link
+                href="/categories/cosmetics"
+                className="relative aspect-[4/3] p-1.5 bg-white border-2 border-[#D3AA57] shadow-xl group overflow-hidden block"
+              >
                 <div className="relative w-full h-full overflow-hidden bg-[#FAF2E6]">
                   <Image
-                    src="/images/products/cosmetics/lipstick-collection.jpg"
-                    alt="Cosmetics and lipsticks"
+                    src="/images/hero/hero-cosmetics.jpg"
+                    alt="Cosmetics and beauty essentials"
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-108"
+                    className="object-cover object-center transition-transform duration-700 group-hover:scale-108"
                     sizes="(max-width: 1024px) 50vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#33241F]/85 via-transparent to-transparent flex items-end p-2.5">
@@ -254,7 +260,7 @@ export default function HeroSection() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </motion.div>
 
             {/* Floating Luxury Stamp / Seal */}
