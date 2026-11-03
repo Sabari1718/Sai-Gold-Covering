@@ -138,29 +138,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('sai_gold_products_updated', handleCustomSync);
 
-    // Also fetch from API endpoint if available
+    // Fetch from API & Cloud endpoint
     fetch('/api/products')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && data.success && Array.isArray(data.products) && data.products.length > 0) {
+        if (data && data.success && Array.isArray(data.products)) {
           try {
             const customStr = localStorage.getItem(STORAGE_KEY_CUSTOM);
             const currentCustom: Product[] = customStr ? JSON.parse(customStr) : [];
-            const ids = new Set(currentCustom.map((p) => p.id));
-            let hasNew = false;
-            const merged = [...currentCustom];
+            const deletedStr = localStorage.getItem(STORAGE_KEY_DELETED);
+            const deletedIds: string[] = deletedStr ? JSON.parse(deletedStr) : [];
 
-            data.products.forEach((apiProd: Product) => {
-              if (apiProd && apiProd.id && !ids.has(apiProd.id)) {
-                merged.unshift(apiProd);
-                hasNew = true;
-              }
+            // Merge cloud products and local products cleanly
+            const map = new Map<string, Product>();
+            data.products.forEach((p: Product) => {
+              if (p && p.id && !deletedIds.includes(p.id)) map.set(p.id, p);
+            });
+            currentCustom.forEach((p: Product) => {
+              if (p && p.id && !deletedIds.includes(p.id) && !map.has(p.id)) map.set(p.id, p);
             });
 
-            if (hasNew) {
-              localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(merged));
-              loadPersistedProducts();
-            }
+            const merged = Array.from(map.values());
+            localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(merged));
+            loadPersistedProducts();
           } catch (err) {
             console.error('Failed to sync API products with localStorage:', err);
           }
@@ -287,28 +287,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
   }, []);
 
-  // Delete product (hide from store)
+  // Delete product (hide from store and delete from cloud permanently)
   const deleteProduct = useCallback((id: string) => {
     try {
       const customStr = localStorage.getItem(STORAGE_KEY_CUSTOM);
       let customProducts: Product[] = customStr ? JSON.parse(customStr) : [];
-      const isCustom = customProducts.some((p) => p.id === id);
+      customProducts = customProducts.filter((p) => p.id !== id);
+      localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customProducts));
 
-      if (isCustom) {
-        customProducts = customProducts.filter((p) => p.id !== id);
-        localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customProducts));
-        // sync delete with API
-        fetch(`/api/products?id=${encodeURIComponent(id)}`, {
-          method: 'DELETE',
-        }).catch(() => {});
-      } else {
-        const deletedStr = localStorage.getItem(STORAGE_KEY_DELETED);
-        const deletedIds: string[] = deletedStr ? JSON.parse(deletedStr) : [];
-        if (!deletedIds.includes(id)) {
-          deletedIds.push(id);
-          localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(deletedIds));
-        }
+      // Always track in deleted IDs so it never re-appears
+      const deletedStr = localStorage.getItem(STORAGE_KEY_DELETED);
+      const deletedIds: string[] = deletedStr ? JSON.parse(deletedStr) : [];
+      if (!deletedIds.includes(id)) {
+        deletedIds.push(id);
+        localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(deletedIds));
       }
+
+      // Sync delete with API and Cloud permanently
+      fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      }).catch(() => {});
 
       if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
         try {
