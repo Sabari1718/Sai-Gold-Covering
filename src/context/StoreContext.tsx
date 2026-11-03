@@ -82,8 +82,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         .filter((p) => !deletedIds.includes(p.id))
         .map((p) => (modifiedMap[p.id] ? { ...p, ...modifiedMap[p.id] } : p));
 
-      // Merge: Newest custom products first, then active base products
-      setProducts([...activeCustom, ...activeBase]);
+      // Merge: Newest custom products first, then active base products (deduplicated)
+      const seenIds = new Set<string>();
+      const combined: Product[] = [];
+      [...activeCustom, ...activeBase].forEach((p) => {
+        if (!seenIds.has(p.id)) {
+          seenIds.add(p.id);
+          combined.push(p);
+        }
+      });
+
+      setProducts(combined);
       setProductsLoaded(true);
     } catch (e) {
       console.error('Error loading products from storage:', e);
@@ -95,6 +104,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Initial load and sync with API
   useEffect(() => {
     loadPersistedProducts();
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        channel = new BroadcastChannel('sai_gold_store_channel');
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'SYNC_PRODUCTS') {
+            loadPersistedProducts();
+          }
+        };
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
     // Cross-tab synchronization
     const handleStorageChange = (e: StorageEvent) => {
@@ -128,7 +151,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             const merged = [...currentCustom];
 
             data.products.forEach((apiProd: Product) => {
-              if (!ids.has(apiProd.id)) {
+              if (apiProd && apiProd.id && !ids.has(apiProd.id)) {
                 merged.unshift(apiProd);
                 hasNew = true;
               }
@@ -143,11 +166,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
         }
       })
-      .catch(() => {
-        // API optional
-      });
+      .catch(() => {});
 
     return () => {
+      if (channel) channel.close();
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('sai_gold_products_updated', handleCustomSync);
     };
@@ -171,7 +193,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         slug: cleanSlug,
         categoryLabel,
         isDemo: false,
-        gallery: productData.gallery && productData.gallery.length > 0 ? productData.gallery : [productData.image],
+        gallery: [productData.image],
         tags: productData.tags || [productData.category, productData.subcategory],
         stock: productData.stock !== undefined ? productData.stock : 10,
         availability: productData.availability !== undefined ? productData.availability : true,
@@ -180,13 +202,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try {
         const customStr = localStorage.getItem(STORAGE_KEY_CUSTOM);
         const customProducts: Product[] = customStr ? JSON.parse(customStr) : [];
-        const updatedCustom = [newProduct, ...customProducts];
+        const filtered = customProducts.filter((p) => p.id !== newProduct.id);
+        const updatedCustom = [newProduct, ...filtered];
         localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(updatedCustom));
-
-        // Notify other components & tabs
-        window.dispatchEvent(new Event('sai_gold_products_updated'));
       } catch (err) {
-        console.error('Failed to save product in localStorage:', err);
+        console.warn('Failed to save product in localStorage:', err);
+      }
+
+      // Update in-memory state immediately without duplicates
+      setProducts((prev) => {
+        const filtered = prev.filter((p) => p.id !== newProduct.id);
+        return [newProduct, ...filtered];
+      });
+
+      // Notify other open tabs & windows immediately via BroadcastChannel
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        try {
+          const ch = new BroadcastChannel('sai_gold_store_channel');
+          ch.postMessage({ type: 'SYNC_PRODUCTS' });
+          ch.close();
+        } catch {}
       }
 
       // Sync with API in background
@@ -194,11 +229,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProduct),
-      }).catch(() => {
-        // silent fail
-      });
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.success) {
+            if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+              try {
+                const ch = new BroadcastChannel('sai_gold_store_channel');
+                ch.postMessage({ type: 'SYNC_PRODUCTS' });
+                ch.close();
+              } catch {}
+            }
+          }
+        })
+        .catch(() => {});
 
-      setProducts((prev) => [newProduct, ...prev]);
       return newProduct;
     },
     []
@@ -228,7 +273,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(STORAGE_KEY_MODIFIED, JSON.stringify(modifiedMap));
       }
 
-      window.dispatchEvent(new Event('sai_gold_products_updated'));
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        try {
+          const ch = new BroadcastChannel('sai_gold_store_channel');
+          ch.postMessage({ type: 'SYNC_PRODUCTS' });
+          ch.close();
+        } catch {}
+      }
     } catch (err) {
       console.error('Failed to update product in localStorage:', err);
     }
@@ -259,7 +310,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      window.dispatchEvent(new Event('sai_gold_products_updated'));
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        try {
+          const ch = new BroadcastChannel('sai_gold_store_channel');
+          ch.postMessage({ type: 'SYNC_PRODUCTS' });
+          ch.close();
+        } catch {}
+      }
     } catch (err) {
       console.error('Failed to delete product in localStorage:', err);
     }
@@ -273,7 +330,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(STORAGE_KEY_CUSTOM);
       localStorage.removeItem(STORAGE_KEY_DELETED);
       localStorage.removeItem(STORAGE_KEY_MODIFIED);
-      window.dispatchEvent(new Event('sai_gold_products_updated'));
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        try {
+          const ch = new BroadcastChannel('sai_gold_store_channel');
+          ch.postMessage({ type: 'SYNC_PRODUCTS' });
+          ch.close();
+        } catch {}
+      }
     } catch (err) {
       console.error('Failed to reset storage:', err);
     }

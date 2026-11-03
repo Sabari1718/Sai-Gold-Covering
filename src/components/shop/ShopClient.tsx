@@ -123,7 +123,7 @@ export default function ShopClient({ initialCategory = 'all' }: Props) {
         if (sortBy === 'popular') return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
         return (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0);
       });
-  }, [search, selectedCategory, selectedSubcategory, selectedPriceIndex, onlyAvailable, sortBy]);
+  }, [allProducts, search, selectedCategory, selectedSubcategory, selectedPriceIndex, onlyAvailable, sortBy]);
 
   const hasActiveFilters =
     search.trim() !== '' ||
@@ -153,7 +153,7 @@ export default function ShopClient({ initialCategory = 'all' }: Props) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search all 50 chains, bangles, cosmetics..."
+            placeholder={`Search all ${allProducts.length} chains, bangles, cosmetics...`}
             className="w-full bg-white border border-[#E8D8C8] pl-10 pr-9 py-2.5 text-xs text-[#33241F] outline-none focus:border-[#D3AA57]"
           />
           {search && (

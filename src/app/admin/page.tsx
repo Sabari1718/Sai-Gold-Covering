@@ -125,7 +125,7 @@ const CATEGORIES: {
 ];
 
 // Helper to compress camera/upload photo to compact, fast JPEG data URL
-async function compressImage(file: File, maxDim = 1080, quality = 0.85): Promise<string> {
+async function compressImage(file: File, maxDim = 480, quality = 0.65): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -158,7 +158,22 @@ async function compressImage(file: File, maxDim = 1080, quality = 0.85): Promise
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const compressed = canvas.toDataURL('image/jpeg', quality);
+        // Compact JPEG data URL ~30KB to 50KB
+        let compressed = canvas.toDataURL('image/jpeg', quality);
+
+        // If still over 65KB, scale to max 360 and compress at 0.55
+        if (compressed.length > 70000) {
+          const sCanvas = document.createElement('canvas');
+          const sScale = 360 / Math.max(width, height);
+          sCanvas.width = Math.round(width * sScale);
+          sCanvas.height = Math.round(height * sScale);
+          const sCtx = sCanvas.getContext('2d');
+          if (sCtx) {
+            sCtx.drawImage(canvas, 0, 0, sCanvas.width, sCanvas.height);
+            compressed = sCanvas.toDataURL('image/jpeg', 0.55);
+          }
+        }
+
         resolve(compressed);
       };
       img.onerror = reject;
@@ -391,7 +406,7 @@ export default function AdminPage() {
     try {
       setIsProcessingImage(true);
       setFormError('');
-      const compressedDataUrl = await compressImage(file, 1080, 0.85);
+      const compressedDataUrl = await compressImage(file);
       setImageDataUrl(compressedDataUrl);
     } catch (err) {
       console.error(err);

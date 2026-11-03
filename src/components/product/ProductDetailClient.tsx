@@ -16,7 +16,7 @@ interface Props {
 
 export default function ProductDetailClient({ initialProduct, slug }: Props) {
   const { getProductBySlug, products } = useStore();
-  const product = initialProduct || getProductBySlug(slug);
+  const product = getProductBySlug(slug) || initialProduct;
 
   if (!product) {
     return (
