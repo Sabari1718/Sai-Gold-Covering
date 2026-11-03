@@ -83,13 +83,13 @@ export default function Header() {
         <div className="flex items-center justify-between h-20 md:h-24">
           
           {/* Left: Mobile Menu Toggle / Location Badge on desktop */}
-          <div className="flex items-center gap-4 lg:w-56">
+          <div className="flex items-center gap-2 sm:gap-4 lg:w-56 shrink-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 text-[#591B2B] hover:text-[#D3AA57] transition-colors"
+              className="lg:hidden p-1.5 sm:p-2 text-[#591B2B] hover:text-[#D3AA57] transition-colors"
               aria-label="Open Mobile Menu"
             >
-              <Menu size={24} />
+              <Menu size={22} className="sm:w-6 sm:h-6" />
             </button>
             <div className="hidden lg:flex items-center gap-1.5 text-xs text-[#762C43] font-semibold">
               <MapPin size={13} className="text-[#D3AA57]" />
@@ -100,41 +100,42 @@ export default function Header() {
           {/* Center: Majestic Royal Brand Identity */}
           <Link
             href="/"
-            className="flex flex-col items-center group text-center"
+            className="flex flex-col items-center group text-center px-1 max-w-[210px] sm:max-w-none"
             aria-label="Sai Gold Covering Home"
           >
-            <span className="text-[9px] sm:text-[10px] tracking-[0.4em] uppercase font-bold text-[#A98243] flex items-center gap-1.5">
-              <Sparkles size={11} className="text-[#D3AA57]" />
-              Premium 1-Gram Gold Covering
-              <Sparkles size={11} className="text-[#D3AA57]" />
+            <span className="text-[8px] sm:text-[10px] tracking-[0.12em] sm:tracking-[0.35em] uppercase font-bold text-[#A98243] flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none">
+              <Sparkles size={9} className="text-[#D3AA57] shrink-0 sm:w-2.5 sm:h-2.5" />
+              <span className="sm:hidden">1-Gram Gold Covering</span>
+              <span className="hidden sm:inline">Premium 1-Gram Gold Covering</span>
+              <Sparkles size={9} className="text-[#D3AA57] shrink-0 sm:w-2.5 sm:h-2.5" />
             </span>
             <span
-              className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-[0.14em] uppercase text-[#591B2B] leading-none mt-1 group-hover:text-[#762C43] transition-colors"
+              className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-[0.08em] sm:tracking-[0.14em] uppercase text-[#591B2B] leading-tight mt-1 group-hover:text-[#762C43] transition-colors whitespace-nowrap"
               style={{ fontFamily: 'var(--font-playfair)' }}
             >
               Sai Gold Covering
             </span>
-            <div className="w-14 h-[2px] bg-gradient-to-r from-transparent via-[#D3AA57] to-transparent mt-2 group-hover:w-32 transition-all duration-300" />
+            <div className="w-10 sm:w-14 h-[1.5px] sm:h-[2px] bg-gradient-to-r from-transparent via-[#D3AA57] to-transparent mt-1.5 group-hover:w-24 sm:group-hover:w-32 transition-all duration-300" />
           </Link>
 
           {/* Right: Actions */}
-          <div className="flex items-center justify-end gap-1 sm:gap-3 lg:w-56 text-[#591B2B]">
+          <div className="flex items-center justify-end gap-0.5 sm:gap-3 lg:w-56 text-[#591B2B] shrink-0">
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 hover:text-[#D3AA57] transition-colors"
+              className="p-1.5 sm:p-2 hover:text-[#D3AA57] transition-colors"
               aria-label="Search"
             >
-              <Search size={20} />
+              <Search size={19} className="sm:w-5 sm:h-5" />
             </button>
 
             <Link
               href="/wishlist"
-              className="relative p-2 hover:text-[#D3AA57] transition-colors"
+              className="relative p-1.5 sm:p-2 hover:text-[#D3AA57] transition-colors"
               aria-label="Wishlist"
             >
-              <Heart size={20} />
+              <Heart size={19} className="sm:w-5 sm:h-5" />
               {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#591B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#591B2B] text-white text-[8px] sm:text-[9px] font-bold flex items-center justify-center">
                   {wishlistCount}
                 </span>
               )}
@@ -142,12 +143,12 @@ export default function Header() {
 
             <Link
               href="/cart"
-              className="relative p-2 hover:text-[#D3AA57] transition-colors"
+              className="relative p-1.5 sm:p-2 hover:text-[#D3AA57] transition-colors"
               aria-label="Shopping Cart"
             >
-              <ShoppingBag size={20} />
+              <ShoppingBag size={19} className="sm:w-5 sm:h-5" />
               {cartCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-gradient-to-r from-[#ECC880] to-[#D3AA57] text-[#1A0B10] text-[9px] font-bold flex items-center justify-center shadow-sm">
+                <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-r from-[#ECC880] to-[#D3AA57] text-[#1A0B10] text-[8px] sm:text-[9px] font-bold flex items-center justify-center shadow-sm">
                   {cartCount}
                 </span>
               )}
