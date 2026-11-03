@@ -56,3 +56,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Review ID is required' }, { status: 400 });
+    }
+
+    const current = getAllReviews();
+    const updated = current.filter((r) => r.id !== id);
+    saveReviews(updated);
+
+    return NextResponse.json({ success: true, reviews: updated });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+

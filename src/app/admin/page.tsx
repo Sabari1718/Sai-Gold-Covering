@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,10 +26,12 @@ import {
   Lock,
   X,
   SlidersHorizontal,
+  Star,
+  MessageSquare,
 } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { formatPrice } from '@/data/products';
-import type { Product, ProductCategory } from '@/types';
+import type { Product, ProductCategory, ProductReview } from '@/types';
 
 // Category presets and default subcategories
 const CATEGORIES: {
@@ -179,7 +181,14 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState('');
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'add' | 'manage' | 'settings'>('add');
+  const [activeTab, setActiveTab] = useState<'add' | 'manage' | 'reviews' | 'settings'>('add');
+
+  // Reviews Moderation State
+  const [adminReviews, setAdminReviews] = useState<ProductReview[]>([]);
+  const [reviewFilterRating, setReviewFilterRating] = useState<number | 'all' | 'low'>('all');
+  const [reviewSearch, setReviewSearch] = useState('');
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewActionMsg, setReviewActionMsg] = useState('');
 
   // Add Product Form State
   const [productName, setProductName] = useState('');
@@ -226,6 +235,115 @@ export default function AdminPage() {
       setAuthLoading(false);
     }
   }, []);
+
+  // Load all reviews for admin moderation
+  const loadAdminReviews = useCallback(async () => {
+    try {
+      setReviewsLoading(true);
+      const res = await fetch('/api/reviews');
+      const data = await res.json();
+      const apiReviews: ProductReview[] = data && data.success && Array.isArray(data.reviews) ? data.reviews : [];
+
+      // Also gather any local custom reviews from localStorage across products
+      const localReviews: ProductReview[] = [];
+      const delStr = localStorage.getItem('sai_gold_deleted_review_ids');
+      const deletedIds: string[] = delStr ? JSON.parse(delStr) : [];
+
+      if (typeof window !== 'undefined') {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sai_gold_reviews_')) {
+            try {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                const list: ProductReview[] = JSON.parse(raw);
+                list.forEach((r) => {
+                  if (!deletedIds.includes(r.id) && !localReviews.some((x) => x.id === r.id)) {
+                    localReviews.push(r);
+                  }
+                });
+              }
+            } catch {}
+          }
+        }
+      }
+
+      // Merge and deduplicate
+      const existingIds = new Set(deletedIds);
+      const all: ProductReview[] = [];
+      [...localReviews, ...apiReviews].forEach((r) => {
+        if (!existingIds.has(r.id)) {
+          existingIds.add(r.id);
+          all.push(r);
+        }
+      });
+
+      setAdminReviews(all);
+    } catch (err) {
+      console.error('Error loading admin reviews:', err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadAdminReviews();
+    }
+  }, [isAuthenticated, loadAdminReviews]);
+
+  // Handle Admin Delete Review
+  const handleAdminDeleteReview = async (id: string, userName: string, productTitle?: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to permanently delete the review by "${userName}"${
+          productTitle ? ` on "${productTitle}"` : ''
+        }? (இந்த கமெண்ட்டை நீக்க வேண்டுமா?)`
+      )
+    ) {
+      return;
+    }
+
+    // Immediately remove from UI
+    setAdminReviews((prev) => prev.filter((r) => r.id !== id));
+
+    try {
+      // Add to deleted review IDs
+      const delStr = localStorage.getItem('sai_gold_deleted_review_ids');
+      const delList: string[] = delStr ? JSON.parse(delStr) : [];
+      if (!delList.includes(id)) {
+        delList.push(id);
+        localStorage.setItem('sai_gold_deleted_review_ids', JSON.stringify(delList));
+      }
+
+      // Remove from any product specific localStorage review keys
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sai_gold_reviews_')) {
+          try {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+              const list: ProductReview[] = JSON.parse(raw);
+              const filtered = list.filter((r) => r.id !== id);
+              if (filtered.length !== list.length) {
+                localStorage.setItem(key, JSON.stringify(filtered));
+              }
+            }
+          } catch {}
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Call API DELETE
+    fetch(`/api/reviews?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }).catch(() => {});
+
+    setReviewActionMsg(`Review by ${userName} deleted successfully.`);
+    setTimeout(() => setReviewActionMsg(''), 4000);
+  };
 
   // Update default subcategory and description when category changes
   useEffect(() => {
@@ -358,6 +476,34 @@ export default function AdminPage() {
       return matchCat && matchQ;
     });
   }, [products, filterCategory, searchQuery]);
+
+  // Filtered reviews in Reviews Tab
+  const filteredAdminReviews = useMemo(() => {
+    return adminReviews.filter((r) => {
+      // Rating filter
+      if (reviewFilterRating === 'low') {
+        if (r.rating > 2) return false;
+      } else if (reviewFilterRating !== 'all') {
+        if (r.rating !== reviewFilterRating) return false;
+      }
+
+      // Search query
+      if (reviewSearch.trim()) {
+        const q = reviewSearch.toLowerCase().trim();
+        const prod = products.find((p) => p.id === r.productId);
+        const matchName = r.userName.toLowerCase().includes(q);
+        const matchComment = r.comment.toLowerCase().includes(q);
+        const matchTitle = r.title.toLowerCase().includes(q);
+        const matchCity = r.userCity ? r.userCity.toLowerCase().includes(q) : false;
+        const matchProd = prod ? prod.name.toLowerCase().includes(q) : false;
+        if (!matchName && !matchComment && !matchTitle && !matchCity && !matchProd) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [adminReviews, reviewFilterRating, reviewSearch, products]);
 
   // Save quick price edit
   const handleSavePrice = (id: string) => {
@@ -634,6 +780,21 @@ export default function AdminPage() {
           >
             <Layers size={18} />
             <span>Manage Inventory ({products.length})</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('reviews');
+              loadAdminReviews();
+            }}
+            className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all whitespace-nowrap ${
+              activeTab === 'reviews'
+                ? 'border-[#591B2B] text-[#591B2B] bg-[#F7DDD1]/30'
+                : 'border-transparent text-[#8E7A70] hover:text-[#591B2B]'
+            }`}
+          >
+            <MessageSquare size={18} />
+            <span>Customer Reviews ({adminReviews.length})</span>
           </button>
 
           <button
@@ -1243,7 +1404,192 @@ export default function AdminPage() {
         )}
 
         {/* =========================================================================
-            TAB 3: SETTINGS & BACKUP
+            TAB 3: CUSTOMER REVIEWS & MODERATION
+        ========================================================================= */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            {/* Reviews Header Banner */}
+            <div className="bg-white border border-[#E8D8C8] p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold text-[#591B2B] uppercase tracking-wider mb-1 flex items-center gap-2">
+                  <MessageSquare size={18} className="text-[#D3AA57]" />
+                  <span>Customer Reviews &amp; Moderation (வாடிக்கையாளர் கருத்துக்கள்)</span>
+                </h2>
+                <p className="text-xs text-[#8E7A70]">
+                  View all ratings posted by users. If anyone posts bad or spam comments, delete them immediately.
+                </p>
+              </div>
+
+              <button
+                onClick={loadAdminReviews}
+                disabled={reviewsLoading}
+                className="px-4 py-2 bg-[#FFF9F0] border border-[#D3AA57] text-[#591B2B] text-xs font-bold uppercase tracking-wider hover:bg-[#D3AA57] hover:text-[#1A0B10] transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              >
+                <RefreshCw size={14} className={reviewsLoading ? 'animate-spin' : ''} />
+                <span>Refresh Reviews</span>
+              </button>
+            </div>
+
+            {/* Action Notice */}
+            {reviewActionMsg && (
+              <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center gap-2 shadow-sm">
+                <CheckCircle size={16} className="text-emerald-600" />
+                <span>{reviewActionMsg}</span>
+              </div>
+            )}
+
+            {/* Review Filter & Search Bar */}
+            <div className="bg-white border border-[#E8D8C8] p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+              <div className="relative w-full md:w-80">
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8E7A70]"
+                />
+                <input
+                  type="text"
+                  value={reviewSearch}
+                  onChange={(e) => setReviewSearch(e.target.value)}
+                  placeholder="Search reviews by name, keyword, or product..."
+                  className="w-full pl-9 pr-4 py-2 bg-[#FFF9F0] border border-[#E8D8C8] text-xs text-[#33241F] focus:outline-none focus:border-[#D3AA57]"
+                />
+              </div>
+
+              {/* Rating Filter Pills */}
+              <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 text-xs">
+                <button
+                  onClick={() => setReviewFilterRating('all')}
+                  className={`px-3 py-1.5 font-bold uppercase tracking-wider transition-all whitespace-nowrap rounded ${
+                    reviewFilterRating === 'all'
+                      ? 'bg-[#591B2B] text-white'
+                      : 'bg-[#FFF9F0] text-[#33241F] border border-[#E8D8C8] hover:bg-[#E8D8C8]'
+                  }`}
+                >
+                  All ({adminReviews.length})
+                </button>
+
+                <button
+                  onClick={() => setReviewFilterRating('low')}
+                  className={`px-3 py-1.5 font-bold uppercase tracking-wider transition-all whitespace-nowrap rounded ${
+                    reviewFilterRating === 'low'
+                      ? 'bg-rose-700 text-white'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                  }`}
+                >
+                  ⚠️ Bad / Low Ratings ({adminReviews.filter((r) => r.rating <= 2).length})
+                </button>
+
+                {[5, 4, 3].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setReviewFilterRating(star)}
+                    className={`px-3 py-1.5 font-bold uppercase tracking-wider transition-all whitespace-nowrap rounded flex items-center gap-1 ${
+                      reviewFilterRating === star
+                        ? 'bg-[#388E3C] text-white'
+                        : 'bg-[#FFF9F0] text-[#33241F] border border-[#E8D8C8] hover:bg-[#E8D8C8]'
+                    }`}
+                  >
+                    <span>{star} ★</span>
+                    <span>({adminReviews.filter((r) => r.rating === star).length})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Reviews Cards List */}
+            <div className="space-y-4">
+              {filteredAdminReviews.length > 0 ? (
+                filteredAdminReviews.map((rev) => {
+                  const prod = products.find((p) => p.id === rev.productId);
+                  const isLow = rev.rating <= 2;
+                  const starColor =
+                    rev.rating >= 4 ? 'bg-[#388E3C]' : rev.rating === 3 ? 'bg-[#8BC34A]' : 'bg-[#D32F2F]';
+
+                  return (
+                    <div
+                      key={rev.id}
+                      className={`bg-white border p-5 sm:p-6 shadow-sm transition-all ${
+                        isLow ? 'border-rose-300 bg-rose-50/20' : 'border-[#E8D8C8]'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
+                        {/* Rating pill + Product info */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-white text-xs font-bold rounded shadow-sm ${starColor}`}
+                            >
+                              <span>{rev.rating}</span>
+                              <Star size={12} className="fill-white" />
+                            </span>
+                            <h4 className="text-sm font-bold text-[#33241F]">{rev.title}</h4>
+                          </div>
+
+                          {prod ? (
+                            <div className="flex items-center gap-2 text-xs text-[#8E7A70]">
+                              <span>On Product:</span>
+                              <Link
+                                href={`/product/${prod.slug}`}
+                                target="_blank"
+                                className="font-bold text-[#591B2B] hover:underline flex items-center gap-1"
+                              >
+                                <span>{prod.name}</span>
+                                <ExternalLink size={11} />
+                              </Link>
+                              <span>({prod.categoryLabel})</span>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-[#8E7A70]">Product ID: {rev.productId}</p>
+                          )}
+                        </div>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleAdminDeleteReview(rev.id, rev.userName, prod?.name)}
+                          className="px-3.5 py-2 bg-rose-50 hover:bg-rose-600 border border-rose-300 text-rose-700 hover:text-white text-xs font-bold uppercase tracking-wider rounded transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                          title="Delete this comment"
+                        >
+                          <Trash2 size={14} />
+                          <span>Delete Comment (நீக்கு)</span>
+                        </button>
+                      </div>
+
+                      {/* Comment text */}
+                      <p className="text-xs sm:text-sm text-[#33241F]/90 bg-[#FFF9F0] p-3 border border-[#E8D8C8] rounded leading-relaxed mb-3">
+                        "{rev.comment}"
+                      </p>
+
+                      {/* Reviewer Details */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#8E7A70] pt-1 border-t border-[#E8D8C8]/60">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#591B2B]">{rev.userName}</span>
+                          {rev.userCity && <span>({rev.userCity})</span>}
+                          <span>•</span>
+                          <span>{rev.createdAt}</span>
+                          {rev.isVerifiedBuyer && (
+                            <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-1.5 py-0.2 rounded">
+                              ✓ Verified Buyer
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="text-[10px] font-mono text-[#8E7A70]">
+                          ID: {rev.id}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="bg-white border border-[#E8D8C8] p-12 text-center text-[#8E7A70] text-xs">
+                  No customer reviews found matching your search or filter.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB 4: SETTINGS & BACKUP
         ========================================================================= */}
         {activeTab === 'settings' && (
           <div className="max-w-2xl bg-white border border-[#E8D8C8] p-6 sm:p-8 shadow-sm space-y-8">

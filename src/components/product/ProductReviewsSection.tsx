@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Star, ThumbsUp, ThumbsDown, CheckCircle2, MessageSquare, Plus, Sparkles, Filter, X } from 'lucide-react';
+import { Star, ThumbsUp, ThumbsDown, CheckCircle2, MessageSquare, Plus, Sparkles, Filter, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product, ProductReview } from '@/types';
 
@@ -131,6 +131,8 @@ export default function ProductReviewsSection({ product }: Props) {
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [filterRating, setFilterRating] = useState<number | 'all'>('all');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [myReviewIds, setMyReviewIds] = useState<string[]>([]);
 
   // Form State
   const [formRating, setFormRating] = useState<number>(5);
@@ -148,8 +150,19 @@ export default function ProductReviewsSection({ product }: Props) {
   // Load reviews on mount
   useEffect(() => {
     try {
+      if (typeof window !== 'undefined') {
+        const adminStored = localStorage.getItem('sai_gold_admin_auth');
+        if (adminStored === 'true') setIsAdmin(true);
+
+        const myStored = localStorage.getItem('sai_gold_my_reviews');
+        if (myStored) setMyReviewIds(JSON.parse(myStored));
+      }
+
       const storageKey = `sai_gold_reviews_${product.id}`;
       const savedStr = localStorage.getItem(storageKey);
+      const delStr = localStorage.getItem('sai_gold_deleted_review_ids');
+      const deletedIds: string[] = delStr ? JSON.parse(delStr) : [];
+
       let loadedReviews: ProductReview[] = savedStr ? JSON.parse(savedStr) : [];
 
       // If no custom reviews exist yet, initialize with default seed reviews
@@ -173,7 +186,9 @@ export default function ProductReviewsSection({ product }: Props) {
         localStorage.setItem(storageKey, JSON.stringify(loadedReviews));
       }
 
-      setReviews(loadedReviews);
+      // Filter out any deleted review IDs
+      const activeReviews = loadedReviews.filter((r) => !deletedIds.includes(r.id));
+      setReviews(activeReviews);
     } catch (e) {
       console.error(e);
     }
@@ -183,9 +198,13 @@ export default function ProductReviewsSection({ product }: Props) {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
+          const delStr = localStorage.getItem('sai_gold_deleted_review_ids');
+          const deletedIds: string[] = delStr ? JSON.parse(delStr) : [];
           setReviews((prev) => {
             const existingIds = new Set(prev.map((r) => r.id));
-            const newOnes = data.reviews.filter((r: ProductReview) => !existingIds.has(r.id));
+            const newOnes = data.reviews.filter(
+              (r: ProductReview) => !existingIds.has(r.id) && !deletedIds.includes(r.id)
+            );
             return [...newOnes, ...prev];
           });
         }
@@ -238,6 +257,13 @@ export default function ProductReviewsSection({ product }: Props) {
       const currentList: ProductReview[] = savedStr ? JSON.parse(savedStr) : [];
       const updated = [newReview, ...currentList];
       localStorage.setItem(storageKey, JSON.stringify(updated));
+
+      // Track as user's own review
+      const myStored = localStorage.getItem('sai_gold_my_reviews');
+      const myList: string[] = myStored ? JSON.parse(myStored) : [];
+      const updatedMy = [newReview.id, ...myList];
+      localStorage.setItem('sai_gold_my_reviews', JSON.stringify(updatedMy));
+      setMyReviewIds(updatedMy);
     } catch (err) {
       console.error(err);
     }
@@ -264,6 +290,49 @@ export default function ProductReviewsSection({ product }: Props) {
       setSubmitSuccess(false);
       setIsFormOpen(false);
     }, 2500);
+  };
+
+  // Handle Delete Review (by creator or admin)
+  const handleDeleteReview = (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this review? (இந்த கமெண்ட்டை நீக்க வேண்டுமா?)')) {
+      return;
+    }
+
+    setReviews((prev) => prev.filter((r) => r.id !== id));
+
+    try {
+      const storageKey = `sai_gold_reviews_${product.id}`;
+      const savedStr = localStorage.getItem(storageKey);
+      if (savedStr) {
+        const currentList: ProductReview[] = JSON.parse(savedStr);
+        const updated = currentList.filter((r) => r.id !== id);
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+      }
+
+      // Add to deleted review IDs
+      const delStr = localStorage.getItem('sai_gold_deleted_review_ids');
+      const delList: string[] = delStr ? JSON.parse(delStr) : [];
+      if (!delList.includes(id)) {
+        delList.push(id);
+        localStorage.setItem('sai_gold_deleted_review_ids', JSON.stringify(delList));
+      }
+
+      // Remove from myReviews if present
+      const myStored = localStorage.getItem('sai_gold_my_reviews');
+      if (myStored) {
+        const myList: string[] = JSON.parse(myStored);
+        const updatedMy = myList.filter((item) => item !== id);
+        localStorage.setItem('sai_gold_my_reviews', JSON.stringify(updatedMy));
+        setMyReviewIds(updatedMy);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Call DELETE API
+    fetch(`/api/reviews?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }).catch(() => {});
   };
 
   // Handle Helpful thumbs up
@@ -619,21 +688,35 @@ export default function ProductReviewsSection({ product }: Props) {
                         )}
                       </div>
 
-                      {/* Flipkart-style Helpful count */}
+                      {/* Actions: Helpful & Delete */}
                       <div className="flex items-center gap-3">
-                        <span className="text-[11px] text-[#8E7A70]">Helpful?</span>
-                        <button
-                          onClick={() => handleHelpful(rev.id)}
-                          disabled={votes.voted}
-                          className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 border rounded transition-colors ${
-                            votes.voted
-                              ? 'text-emerald-700 border-emerald-300 bg-emerald-50'
-                              : 'text-[#33241F] border-[#E8D8C8] hover:border-[#D3AA57] hover:text-[#591B2B]'
-                          }`}
-                        >
-                          <ThumbsUp size={12} />
-                          <span>{votes.count}</span>
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-[#8E7A70]">Helpful?</span>
+                          <button
+                            onClick={() => handleHelpful(rev.id)}
+                            disabled={votes.voted}
+                            className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 border rounded transition-colors ${
+                              votes.voted
+                                ? 'text-emerald-700 border-emerald-300 bg-emerald-50'
+                                : 'text-[#33241F] border-[#E8D8C8] hover:border-[#D3AA57] hover:text-[#591B2B]'
+                            }`}
+                          >
+                            <ThumbsUp size={12} />
+                            <span>{votes.count}</span>
+                          </button>
+                        </div>
+
+                        {/* Delete button (visible if admin or created by user) */}
+                        {(isAdmin || myReviewIds.includes(rev.id) || !rev.id.startsWith('REV-SEED')) && (
+                          <button
+                            onClick={() => handleDeleteReview(rev.id)}
+                            className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-0.5 border border-rose-200 rounded transition-colors cursor-pointer"
+                            title={isAdmin ? 'Admin Delete Review (கமெண்ட்டை நீக்கு)' : 'Delete Your Review (உங்கள் கருத்தை நீக்கு)'}
+                          >
+                            <Trash2 size={12} />
+                            <span>Delete</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -651,3 +734,4 @@ export default function ProductReviewsSection({ product }: Props) {
     </section>
   );
 }
+
