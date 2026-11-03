@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
 import type { Product } from '@/types';
 
+const BLOB_PRODUCTS_URL = 'https://abuh2iz2z5rdsybi.public.blob.vercel-storage.com/custom-products.json';
 const dataFilePath = path.join(process.cwd(), 'src', 'data', 'custom-products.json');
-const CLOUD_STORAGE_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1a10f14761cb6';
 
 function getLocalCustomProducts(): Product[] {
   try {
@@ -23,58 +24,60 @@ function saveLocalCustomProducts(products: Product[]): boolean {
     fs.writeFileSync(dataFilePath, JSON.stringify(products, null, 2), 'utf8');
     return true;
   } catch (err) {
-    // In serverless environments, file writing might be read-only
     return false;
   }
 }
 
-async function fetchCloudProducts(): Promise<Product[] | null> {
+async function fetchBlobProducts(): Promise<Product[] | null> {
   try {
-    const res = await fetch(CLOUD_STORAGE_URL, {
+    const res = await fetch(`${BLOB_PRODUCTS_URL}?t=${Date.now()}`, {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' },
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
     });
     if (res.ok) {
-      const json = await res.json();
-      if (json && json.data && Array.isArray(json.data.products)) {
-        return json.data.products;
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data;
       }
     }
   } catch (err) {
-    console.error('Failed to fetch from cloud storage:', err);
+    console.error('Failed to fetch from blob storage:', err);
   }
   return null;
 }
 
-async function saveCloudProducts(products: Product[]): Promise<boolean> {
+async function saveBlobProducts(products: Product[]): Promise<boolean> {
   try {
-    const res = await fetch(CLOUD_STORAGE_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'Sai Gold Covering Products',
-        data: { products },
-      }),
-      cache: 'no-store',
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
+      console.warn('BLOB_READ_WRITE_TOKEN is not set');
+      return false;
+    }
+    await put('custom-products.json', JSON.stringify(products), {
+      access: 'public',
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      token,
+      cacheControlMaxAge: 0,
     });
-    return res.ok;
+    return true;
   } catch (err) {
-    console.error('Failed to save to cloud storage:', err);
+    console.error('Failed to save to blob storage:', err);
     return false;
   }
 }
 
 export async function GET() {
-  const cloud = await fetchCloudProducts();
+  const blob = await fetchBlobProducts();
   const local = getLocalCustomProducts();
 
   let finalProducts = local;
-  if (cloud && Array.isArray(cloud) && cloud.length > 0) {
-    finalProducts = cloud;
-    saveLocalCustomProducts(cloud);
+  if (blob && Array.isArray(blob)) {
+    finalProducts = blob;
+    saveLocalCustomProducts(blob);
   } else if (local.length > 0) {
     finalProducts = local;
-    saveCloudProducts(local).catch(() => {});
+    saveBlobProducts(local).catch(() => {});
   }
 
   return NextResponse.json({ success: true, products: finalProducts });
@@ -84,9 +87,8 @@ export async function POST(req: Request) {
   try {
     const newProduct: Product = await req.json();
 
-    // Fetch latest cloud state
-    const cloud = await fetchCloudProducts();
-    const current = cloud && Array.isArray(cloud) ? cloud : getLocalCustomProducts();
+    const blob = await fetchBlobProducts();
+    const current = blob && Array.isArray(blob) ? blob : getLocalCustomProducts();
 
     const existingIndex = current.findIndex((p) => p.id === newProduct.id);
     let updated: Product[];
@@ -97,9 +99,8 @@ export async function POST(req: Request) {
       updated = [newProduct, ...current];
     }
 
-    // Persist to both local and global cloud
     saveLocalCustomProducts(updated);
-    await saveCloudProducts(updated);
+    await saveBlobProducts(updated);
 
     return NextResponse.json({ success: true, product: newProduct, products: updated });
   } catch (err: any) {
@@ -115,12 +116,12 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, error: 'Product ID required' }, { status: 400 });
     }
 
-    const cloud = await fetchCloudProducts();
-    const current = cloud && Array.isArray(cloud) ? cloud : getLocalCustomProducts();
+    const blob = await fetchBlobProducts();
+    const current = blob && Array.isArray(blob) ? blob : getLocalCustomProducts();
 
     const updated = current.filter((p) => p.id !== id);
     saveLocalCustomProducts(updated);
-    await saveCloudProducts(updated);
+    await saveBlobProducts(updated);
 
     return NextResponse.json({ success: true, products: updated });
   } catch (err: any) {

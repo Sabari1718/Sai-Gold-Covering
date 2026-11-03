@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
 import type { ProductReview } from '@/types';
 
+const BLOB_REVIEWS_URL = 'https://abuh2iz2z5rdsybi.public.blob.vercel-storage.com/user-reviews.json';
 const reviewsFilePath = path.join(process.cwd(), 'src', 'data', 'user-reviews.json');
-const CLOUD_REVIEWS_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1a10f75d41cb8';
 
 function getLocalReviews(): ProductReview[] {
   try {
@@ -27,38 +28,38 @@ function saveLocalReviews(reviews: ProductReview[]): boolean {
   }
 }
 
-async function fetchCloudReviews(): Promise<ProductReview[] | null> {
+async function fetchBlobReviews(): Promise<ProductReview[] | null> {
   try {
-    const res = await fetch(CLOUD_REVIEWS_URL, {
+    const res = await fetch(`${BLOB_REVIEWS_URL}?t=${Date.now()}`, {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' },
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
     });
     if (res.ok) {
-      const json = await res.json();
-      if (json && json.data && Array.isArray(json.data.reviews)) {
-        return json.data.reviews;
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data;
       }
     }
   } catch (err) {
-    console.error('Failed to fetch reviews from cloud:', err);
+    console.error('Failed to fetch reviews from blob:', err);
   }
   return null;
 }
 
-async function saveCloudReviews(reviews: ProductReview[]): Promise<boolean> {
+async function saveBlobReviews(reviews: ProductReview[]): Promise<boolean> {
   try {
-    const res = await fetch(CLOUD_REVIEWS_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'Sai Gold Covering Customer Reviews',
-        data: { reviews },
-      }),
-      cache: 'no-store',
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) return false;
+    await put('user-reviews.json', JSON.stringify(reviews), {
+      access: 'public',
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      token,
+      cacheControlMaxAge: 0,
     });
-    return res.ok;
+    return true;
   } catch (err) {
-    console.error('Failed to save reviews to cloud:', err);
+    console.error('Failed to save reviews to blob:', err);
     return false;
   }
 }
@@ -67,16 +68,16 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const productId = searchParams.get('productId');
 
-  const cloud = await fetchCloudReviews();
+  const blob = await fetchBlobReviews();
   const local = getLocalReviews();
 
   let all = local;
-  if (cloud && Array.isArray(cloud) && cloud.length > 0) {
-    all = cloud;
-    saveLocalReviews(cloud);
+  if (blob && Array.isArray(blob)) {
+    all = blob;
+    saveLocalReviews(blob);
   } else if (local.length > 0) {
     all = local;
-    saveCloudReviews(local).catch(() => {});
+    saveBlobReviews(local).catch(() => {});
   }
 
   if (productId) {
@@ -94,12 +95,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Missing required review fields' }, { status: 400 });
     }
 
-    const cloud = await fetchCloudReviews();
-    const current = cloud && Array.isArray(cloud) ? cloud : getLocalReviews();
+    const blob = await fetchBlobReviews();
+    const current = blob && Array.isArray(blob) ? blob : getLocalReviews();
 
     const updated = [newReview, ...current.filter((r) => r.id !== newReview.id)];
     saveLocalReviews(updated);
-    await saveCloudReviews(updated);
+    await saveBlobReviews(updated);
 
     return NextResponse.json({ success: true, review: newReview, reviews: updated });
   } catch (err: any) {
@@ -115,12 +116,12 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, error: 'Review ID is required' }, { status: 400 });
     }
 
-    const cloud = await fetchCloudReviews();
-    const current = cloud && Array.isArray(cloud) ? cloud : getLocalReviews();
+    const blob = await fetchBlobReviews();
+    const current = blob && Array.isArray(blob) ? blob : getLocalReviews();
 
     const updated = current.filter((r) => r.id !== id);
     saveLocalReviews(updated);
-    await saveCloudReviews(updated);
+    await saveBlobReviews(updated);
 
     return NextResponse.json({ success: true, reviews: updated });
   } catch (err: any) {

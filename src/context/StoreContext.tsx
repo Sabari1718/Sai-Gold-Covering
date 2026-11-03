@@ -155,7 +155,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               if (p && p.id && p.name && p.image && !deletedIds.includes(p.id)) map.set(p.id, p);
             });
             currentCustom.forEach((p: Product) => {
-              if (p && p.id && p.name && p.image && !deletedIds.includes(p.id) && !map.has(p.id)) map.set(p.id, p);
+              if (p && p.id && p.name && p.image && !deletedIds.includes(p.id) && !map.has(p.id)) {
+                map.set(p.id, p);
+                // Automatically upload local-only product to global cloud storage so mobile sees it too!
+                fetch('/api/products', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(p),
+                }).catch(() => {});
+              }
             });
 
             const merged = Array.from(map.values());
