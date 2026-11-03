@@ -675,13 +675,20 @@ export default function AdminPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
                     <Link
-                      href={`/product/${addedProductSuccess.slug}`}
+                      href={`/shop?category=${addedProductSuccess.category}`}
                       target="_blank"
                       className="px-3.5 py-1.5 bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider hover:bg-emerald-800 transition-colors"
                     >
-                      View on Website →
+                      View in {addedProductSuccess.categoryLabel} →
+                    </Link>
+                    <Link
+                      href={`/product/${addedProductSuccess.slug}`}
+                      target="_blank"
+                      className="px-3.5 py-1.5 bg-[#591B2B] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#762C43] transition-colors"
+                    >
+                      Product Page →
                     </Link>
                     <button
                       onClick={() => setAddedProductSuccess(null)}

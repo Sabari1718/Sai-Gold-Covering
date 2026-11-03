@@ -59,7 +59,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(defaultProducts);
   const [productsLoaded, setProductsLoaded] = useState(false);
 
-  // Load persisted products from localStorage on mount
+  // Load persisted products from localStorage and merge with API
   const loadPersistedProducts = useCallback(() => {
     try {
       if (typeof window === 'undefined') return;
@@ -82,7 +82,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         .filter((p) => !deletedIds.includes(p.id))
         .map((p) => (modifiedMap[p.id] ? { ...p, ...modifiedMap[p.id] } : p));
 
-      // Newest custom products first, followed by active base products
+      // Merge: Newest custom products first, then active base products
       setProducts([...activeCustom, ...activeBase]);
       setProductsLoaded(true);
     } catch (e) {
@@ -92,11 +92,68 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Initial load and sync with API
   useEffect(() => {
     loadPersistedProducts();
+
+    // Cross-tab synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (
+        e.key === STORAGE_KEY_CUSTOM ||
+        e.key === STORAGE_KEY_DELETED ||
+        e.key === STORAGE_KEY_MODIFIED ||
+        !e.key
+      ) {
+        loadPersistedProducts();
+      }
+    };
+
+    const handleCustomSync = () => {
+      loadPersistedProducts();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('sai_gold_products_updated', handleCustomSync);
+
+    // Also fetch from API endpoint if available
+    fetch('/api/products')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.products) && data.products.length > 0) {
+          try {
+            const customStr = localStorage.getItem(STORAGE_KEY_CUSTOM);
+            const currentCustom: Product[] = customStr ? JSON.parse(customStr) : [];
+            const ids = new Set(currentCustom.map((p) => p.id));
+            let hasNew = false;
+            const merged = [...currentCustom];
+
+            data.products.forEach((apiProd: Product) => {
+              if (!ids.has(apiProd.id)) {
+                merged.unshift(apiProd);
+                hasNew = true;
+              }
+            });
+
+            if (hasNew) {
+              localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(merged));
+              loadPersistedProducts();
+            }
+          } catch (err) {
+            console.error('Failed to sync API products with localStorage:', err);
+          }
+        }
+      })
+      .catch(() => {
+        // API optional
+      });
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('sai_gold_products_updated', handleCustomSync);
+    };
   }, [loadPersistedProducts]);
 
-  // Add a new product (e.g. from shop owner admin panel)
+  // Add a new product (from shop owner admin panel)
   const addProduct = useCallback(
     (productData: Omit<Product, 'id' | 'slug' | 'categoryLabel' | 'isDemo'> & { id?: string; slug?: string }): Product => {
       const timestamp = Date.now();
@@ -125,9 +182,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const customProducts: Product[] = customStr ? JSON.parse(customStr) : [];
         const updatedCustom = [newProduct, ...customProducts];
         localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(updatedCustom));
+
+        // Notify other components & tabs
+        window.dispatchEvent(new Event('sai_gold_products_updated'));
       } catch (err) {
         console.error('Failed to save product in localStorage:', err);
       }
+
+      // Sync with API in background
+      fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct),
+      }).catch(() => {
+        // silent fail
+      });
 
       setProducts((prev) => [newProduct, ...prev]);
       return newProduct;
@@ -145,6 +214,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (customIndex !== -1) {
         customProducts[customIndex] = { ...customProducts[customIndex], ...updates };
         localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customProducts));
+        // sync with API
+        fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customProducts[customIndex]),
+        }).catch(() => {});
       } else {
         // Base product modification
         const modifiedStr = localStorage.getItem(STORAGE_KEY_MODIFIED);
@@ -152,6 +227,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         modifiedMap[id] = { ...(modifiedMap[id] || {}), ...updates };
         localStorage.setItem(STORAGE_KEY_MODIFIED, JSON.stringify(modifiedMap));
       }
+
+      window.dispatchEvent(new Event('sai_gold_products_updated'));
     } catch (err) {
       console.error('Failed to update product in localStorage:', err);
     }
@@ -169,6 +246,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (isCustom) {
         customProducts = customProducts.filter((p) => p.id !== id);
         localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customProducts));
+        // sync delete with API
+        fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        }).catch(() => {});
       } else {
         const deletedStr = localStorage.getItem(STORAGE_KEY_DELETED);
         const deletedIds: string[] = deletedStr ? JSON.parse(deletedStr) : [];
@@ -177,6 +258,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(deletedIds));
         }
       }
+
+      window.dispatchEvent(new Event('sai_gold_products_updated'));
     } catch (err) {
       console.error('Failed to delete product in localStorage:', err);
     }
@@ -190,6 +273,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(STORAGE_KEY_CUSTOM);
       localStorage.removeItem(STORAGE_KEY_DELETED);
       localStorage.removeItem(STORAGE_KEY_MODIFIED);
+      window.dispatchEvent(new Event('sai_gold_products_updated'));
     } catch (err) {
       console.error('Failed to reset storage:', err);
     }
