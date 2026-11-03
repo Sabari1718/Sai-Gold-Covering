@@ -138,36 +138,57 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('sai_gold_products_updated', handleCustomSync);
 
-    // Fetch from API & Cloud endpoint
+    // Fetch from API & Cloud endpoint (Custom products, Deleted IDs, Modified Base Products)
     fetch('/api/products')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && data.success && Array.isArray(data.products)) {
+        if (data && data.success) {
           try {
-            const customStr = localStorage.getItem(STORAGE_KEY_CUSTOM);
-            const currentCustom: Product[] = customStr ? JSON.parse(customStr) : [];
-            const deletedStr = localStorage.getItem(STORAGE_KEY_DELETED);
-            const deletedIds: string[] = deletedStr ? JSON.parse(deletedStr) : [];
+            // 1. Merge Cloud Deleted IDs
+            if (Array.isArray(data.deletedIds)) {
+              const localDelStr = localStorage.getItem(STORAGE_KEY_DELETED);
+              const localDel: string[] = localDelStr ? JSON.parse(localDelStr) : [];
+              const mergedDel = Array.from(new Set([...localDel, ...data.deletedIds]));
+              localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(mergedDel));
+            }
 
-            // Merge cloud products and local products cleanly
-            const map = new Map<string, Product>();
-            data.products.forEach((p: Product) => {
-              if (p && p.id && p.name && p.image && !deletedIds.includes(p.id)) map.set(p.id, p);
-            });
-            currentCustom.forEach((p: Product) => {
-              if (p && p.id && p.name && p.image && !deletedIds.includes(p.id) && !map.has(p.id)) {
-                map.set(p.id, p);
-                // Automatically upload local-only product to global cloud storage so mobile sees it too!
-                fetch('/api/products', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(p),
-                }).catch(() => {});
-              }
-            });
+            // 2. Merge Cloud Modified Base Products Map (Stock / Price changes)
+            if (data.modifiedMap && typeof data.modifiedMap === 'object') {
+              const localModStr = localStorage.getItem(STORAGE_KEY_MODIFIED);
+              const localMod = localModStr ? JSON.parse(localModStr) : {};
+              const mergedMod = { ...localMod, ...data.modifiedMap };
+              localStorage.setItem(STORAGE_KEY_MODIFIED, JSON.stringify(mergedMod));
+            }
 
-            const merged = Array.from(map.values());
-            localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(merged));
+            // 3. Merge Custom Products
+            if (Array.isArray(data.products)) {
+              const customStr = localStorage.getItem(STORAGE_KEY_CUSTOM);
+              const currentCustom: Product[] = customStr ? JSON.parse(customStr) : [];
+              const deletedStr = localStorage.getItem(STORAGE_KEY_DELETED);
+              const deletedIds: string[] = deletedStr ? JSON.parse(deletedStr) : [];
+
+              const map = new Map<string, Product>();
+              data.products.forEach((p: Product) => {
+                if (p && p.id && p.name && p.image && !deletedIds.includes(p.id)) {
+                  map.set(p.id, p);
+                }
+              });
+              currentCustom.forEach((p: Product) => {
+                if (p && p.id && p.name && p.image && !deletedIds.includes(p.id) && !map.has(p.id)) {
+                  map.set(p.id, p);
+                  // Automatically upload local-only product to global cloud storage
+                  fetch('/api/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(p),
+                  }).catch(() => {});
+                }
+              });
+
+              const merged = Array.from(map.values());
+              localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(merged));
+            }
+
             loadPersistedProducts();
           } catch (err) {
             console.error('Failed to sync API products with localStorage:', err);
@@ -267,19 +288,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (customIndex !== -1) {
         customProducts[customIndex] = { ...customProducts[customIndex], ...updates };
         localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customProducts));
-        // sync with API
-        fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(customProducts[customIndex]),
-        }).catch(() => {});
       } else {
-        // Base product modification
+        // Base product modification (e.g. stock toggle or price edit)
         const modifiedStr = localStorage.getItem(STORAGE_KEY_MODIFIED);
         const modifiedMap: Record<string, Partial<Product>> = modifiedStr ? JSON.parse(modifiedStr) : {};
         modifiedMap[id] = { ...(modifiedMap[id] || {}), ...updates };
         localStorage.setItem(STORAGE_KEY_MODIFIED, JSON.stringify(modifiedMap));
       }
+
+      // Sync partial update to Cloud / Server for BOTH custom and base products
+      fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, updates }),
+      }).catch((err) => {
+        console.error('Failed to sync product update with cloud:', err);
+      });
 
       if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
         try {
