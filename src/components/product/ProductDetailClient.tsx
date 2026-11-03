@@ -92,3 +92,4 @@ export default function ProductDetailClient({ initialProduct, slug }: Props) {
     </div>
   );
 }
+

@@ -243,14 +243,17 @@ export default function AdminPage() {
     e.preventDefault();
     setLoginError('');
 
-    const cleanUser = usernameInput.trim().toLowerCase();
+    const cleanUser = usernameInput.trim().toLowerCase().replace(/\s+/g, ' ');
     const cleanPass = passwordInput.trim();
 
-    if (cleanUser === 'sai gold' && cleanPass === 'sabari@18') {
+    const isUserValid = cleanUser === 'sai gold' || cleanUser === 'saigold';
+    const isPassValid = cleanPass === 'Sabari@18' || cleanPass.toLowerCase() === 'sabari@18';
+
+    if (isUserValid && isPassValid) {
       localStorage.setItem('sai_gold_admin_auth', 'true');
       setIsAuthenticated(true);
     } else {
-      setLoginError('Invalid credentials. Check username (sai gold) and password.');
+      setLoginError('Invalid credentials. Check username (Sai Gold) and password (Sabari@18).');
     }
   };
 
@@ -461,7 +464,8 @@ export default function AdminPage() {
                 type="text"
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value)}
-                placeholder="sai gold"
+                autoComplete="off"
+                spellCheck={false}
                 required
                 className="w-full px-4 py-3 bg-[#FFF9F0] border border-[#E8D8C8] text-sm text-[#33241F] focus:outline-none focus:border-[#D3AA57] focus:ring-1 focus:ring-[#D3AA57] transition-all"
               />
@@ -476,7 +480,7 @@ export default function AdminPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                   className="w-full px-4 py-3 bg-[#FFF9F0] border border-[#E8D8C8] text-sm text-[#33241F] focus:outline-none focus:border-[#D3AA57] focus:ring-1 focus:ring-[#D3AA57] transition-all pr-10"
                 />
@@ -1293,3 +1297,4 @@ export default function AdminPage() {
     </div>
   );
 }
+
