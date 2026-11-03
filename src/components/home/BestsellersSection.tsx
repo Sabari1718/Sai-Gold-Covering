@@ -5,17 +5,20 @@ import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import SectionHeader from '@/components/common/SectionHeader';
 import ProductCard from '@/components/common/ProductCard';
-import { getBestsellers, products } from '@/data/products';
+import { getBestsellers, products as defaultProducts } from '@/data/products';
+import { useStore } from '@/context/StoreContext';
 import type { ProductCategory } from '@/types';
 
 export default function BestsellersSection() {
+  const { products: storeProducts } = useStore();
+  const allProducts = storeProducts && storeProducts.length > 0 ? storeProducts : defaultProducts;
   const [selectedCat, setSelectedCat] = useState<'all' | ProductCategory>('all');
   
-  const allBestsellers = getBestsellers();
+  const allBestsellers = allProducts.filter((p) => p.isBestSeller || p.isFeatured);
   const displayProducts =
     selectedCat === 'all'
-      ? allBestsellers.slice(0, 8)
-      : products.filter((p) => p.category === selectedCat).slice(0, 8);
+      ? (allBestsellers.length > 0 ? allBestsellers : allProducts).slice(0, 8)
+      : allProducts.filter((p) => p.category === selectedCat).slice(0, 8);
 
   const categories = [
     { id: 'all', label: 'All Bestsellers' },

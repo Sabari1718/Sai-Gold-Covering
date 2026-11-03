@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/common/ProductCard';
-import { products } from '@/data/products';
+import { products as defaultProducts } from '@/data/products';
+import { useStore } from '@/context/StoreContext';
 import type { ProductCategory, SortOption } from '@/types';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
@@ -29,6 +30,9 @@ interface Props {
 }
 
 export default function ShopClient({ initialCategory = 'all' }: Props) {
+  const { products: storeProducts } = useStore();
+  const allProducts = storeProducts && storeProducts.length > 0 ? storeProducts : defaultProducts;
+
   const searchParams = useSearchParams();
   const qParam = searchParams.get('q') || '';
   const catParam = (searchParams.get('category') as any) || initialCategory;
@@ -53,12 +57,12 @@ export default function ShopClient({ initialCategory = 'all' }: Props) {
   // Available Subcategories based on chosen category
   const availableSubcategories = useMemo(() => {
     if (selectedCategory === 'all') {
-      return Array.from(new Set(products.map((p) => p.subcategory)));
+      return Array.from(new Set(allProducts.map((p) => p.subcategory)));
     }
     if (selectedCategory === 'jewellery') {
       return Array.from(
         new Set(
-          products
+          allProducts
             .filter((p) => p.category === 'chains' || p.category === 'necklaces')
             .map((p) => p.subcategory)
         )
@@ -66,16 +70,16 @@ export default function ShopClient({ initialCategory = 'all' }: Props) {
     }
     return Array.from(
       new Set(
-        products.filter((p) => p.category === selectedCategory).map((p) => p.subcategory)
+        allProducts.filter((p) => p.category === selectedCategory).map((p) => p.subcategory)
       )
     );
-  }, [selectedCategory]);
+  }, [selectedCategory, allProducts]);
 
   // Filtering & Sorting
   const filteredProducts = useMemo(() => {
     const priceRange = PRICE_RANGES[selectedPriceIndex];
 
-    return products
+    return allProducts
       .filter((p) => {
         // Search text
         if (search.trim()) {
@@ -379,7 +383,7 @@ export default function ShopClient({ initialCategory = 'all' }: Props) {
                 onClick={resetFilters}
                 className="px-6 py-2.5 bg-[#591B2B] text-white text-xs font-bold uppercase tracking-wider"
               >
-                Show All 50 Products
+                Reset All Filters
               </button>
             </div>
           )}

@@ -5,10 +5,14 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
 import SectionHeader from '@/components/common/SectionHeader';
 import ProductCard from '@/components/common/ProductCard';
-import { getNewArrivals } from '@/data/products';
+import { getNewArrivals, products as defaultProducts } from '@/data/products';
+import { useStore } from '@/context/StoreContext';
 
 export default function NewArrivalsSection() {
-  const newProducts = getNewArrivals();
+  const { products: storeProducts } = useStore();
+  const allProducts = storeProducts && storeProducts.length > 0 ? storeProducts : defaultProducts;
+  const newProducts = allProducts.filter((p) => p.isNewArrival);
+  const displayProducts = newProducts.length > 0 ? newProducts : allProducts.slice(0, 10);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -56,7 +60,7 @@ export default function NewArrivalsSection() {
           className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 scroll-smooth snap-x snap-mandatory pt-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {newProducts.map((product) => (
+          {displayProducts.map((product) => (
             <div
               key={product.id}
               className="w-[260px] sm:w-[300px] shrink-0 snap-start"

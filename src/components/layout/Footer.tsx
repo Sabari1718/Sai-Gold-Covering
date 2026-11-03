@@ -184,8 +184,15 @@ export default function Footer() {
       </div>
 
       {/* Sub-footer Bar */}
-      <div className="border-t border-white/10 py-6 text-center text-xs text-[#FFF9F0]/55 px-4 bg-[#14050D]">
+      <div className="border-t border-white/10 py-6 text-center text-xs text-[#FFF9F0]/55 px-4 bg-[#14050D] flex flex-col sm:flex-row items-center justify-between max-w-7xl mx-auto gap-3">
         <p>© {year} Sai Gold Covering, Malumichampatti, Coimbatore. All rights reserved.</p>
+        <Link
+          href="/admin"
+          className="text-[11px] text-[#ECC880]/70 hover:text-[#ECC880] font-medium tracking-wider uppercase flex items-center gap-1.5 transition-colors"
+        >
+          <span>Store Admin Login</span>
+          <span>🔒</span>
+        </Link>
       </div>
     </footer>
   );

@@ -22,6 +22,7 @@ export default function ProductGallery({ images, name }: Props) {
           alt={name}
           fill
           priority
+          unoptimized={activeImage.startsWith('data:')}
           className="object-cover transition-transform duration-500 hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
@@ -44,6 +45,7 @@ export default function ProductGallery({ images, name }: Props) {
                 src={img}
                 alt={`${name} thumbnail ${idx + 1}`}
                 fill
+                unoptimized={img.startsWith('data:')}
                 className="object-cover"
                 sizes="80px"
               />

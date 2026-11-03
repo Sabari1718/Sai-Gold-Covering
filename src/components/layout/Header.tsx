@@ -154,10 +154,10 @@ export default function Header() {
             </Link>
 
             <Link
-              href="/contact"
+              href="/admin"
               className="hidden sm:inline-flex p-2 hover:text-[#D3AA57] transition-colors"
-              aria-label="Store Assistance"
-              title="Store Assistance"
+              aria-label="Shop Owner Admin Portal"
+              title="Shop Owner Admin Portal"
             >
               <User size={20} />
             </Link>
@@ -361,6 +361,14 @@ export default function Header() {
                   <Phone size={14} />
                   <span>Call: {SITE_CONFIG.secondaryPhone}</span>
                 </a>
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 bg-[#591B2B] text-[#ECC880] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <User size={14} />
+                  <span>Shop Owner Admin Portal</span>
+                </Link>
               </div>
             </motion.div>
           </>

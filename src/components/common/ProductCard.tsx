@@ -67,6 +67,7 @@ export default function ProductCard({ product, priority = false }: Props) {
             alt={product.name}
             fill
             priority={priority}
+            unoptimized={product.image.startsWith('data:')}
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
@@ -199,7 +200,13 @@ export default function ProductCard({ product, priority = false }: Props) {
             </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-center">
               <div className="relative aspect-square border border-[#E8D8C8] overflow-hidden bg-[#FAF2E6]">
-                <Image src={product.image} alt={product.name} fill className="object-cover" />
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  unoptimized={product.image.startsWith('data:')}
+                  className="object-cover"
+                />
               </div>
               <div className="flex flex-col justify-between">
                 <div>
