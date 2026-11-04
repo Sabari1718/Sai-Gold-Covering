@@ -42,7 +42,7 @@ const INSTAGRAM_TILES = [
 
 export default function InstagramSection() {
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FFF9F0] to-[#FAF2E6] border-b border-[#D3AA57]/30">
+    <section className="py-8 sm:py-12 bg-gradient-to-b from-[#FFF9F0] to-[#FAF2E6] border-b border-[#D3AA57]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <SectionHeader

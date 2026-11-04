@@ -33,7 +33,7 @@ const REASONS = [
 
 export default function WhyChooseUsSection() {
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-[#1C0811] via-[#260D17] to-[#1C0811] text-[#FFF9F0] border-b border-[#D3AA57]/30 relative overflow-hidden">
+    <section className="py-8 sm:py-12 bg-gradient-to-b from-[#1C0811] via-[#260D17] to-[#1C0811] text-[#FFF9F0] border-b border-[#D3AA57]/30 relative overflow-hidden">
       
       {/* Background Subtle Mandala */}
       <div

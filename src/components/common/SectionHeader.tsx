@@ -24,10 +24,10 @@ export default function SectionHeader({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className={`mb-10 sm:mb-14 ${center ? 'text-center max-w-2xl mx-auto' : 'max-w-xl'}`}
+      className={`mb-6 sm:mb-8 ${center ? 'text-center max-w-2xl mx-auto' : 'max-w-xl'}`}
     >
       {/* Top Label with Royal Gold Dots */}
-      <div className={`inline-flex items-center gap-2 mb-2.5 ${center ? 'justify-center' : ''}`}>
+      <div className={`inline-flex items-center gap-2 mb-1.5 ${center ? 'justify-center' : ''}`}>
         <span className="w-1.5 h-1.5 rounded-full bg-[#D3AA57]" />
         <span
           className={`text-[10px] sm:text-[11px] font-bold tracking-[0.28em] uppercase ${
@@ -41,7 +41,7 @@ export default function SectionHeader({
 
       {/* Main Title */}
       <h2
-        className={`text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-bold leading-tight mb-4 ${
+        className={`text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-bold leading-tight mb-2 ${
           light ? 'text-[#FFF9F0]' : 'text-[#591B2B]'
         }`}
         style={{ fontFamily: 'var(--font-playfair)' }}
@@ -50,7 +50,7 @@ export default function SectionHeader({
       </h2>
 
       {/* Royal Gold Filigree Divider */}
-      <div className={`flex items-center gap-3 mb-4 ${center ? 'justify-center' : ''}`}>
+      <div className={`flex items-center gap-3 mb-2.5 ${center ? 'justify-center' : ''}`}>
         <span className="h-[1px] w-12 sm:w-16 bg-gradient-to-r from-transparent to-[#D3AA57]" />
         <span className="w-2 h-2 rotate-45 bg-[#D3AA57] shadow-sm shadow-[#D3AA57]/50" />
         <Sparkles size={11} className="text-[#D3AA57]" />

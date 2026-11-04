@@ -43,7 +43,7 @@ const INTERESTS = [
 
 export default function ShopByInterestSection() {
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FAF2E6] to-[#FFF9F0] border-b border-[#D3AA57]/30">
+    <section className="py-8 sm:py-12 bg-gradient-to-b from-[#FAF2E6] to-[#FFF9F0] border-b border-[#D3AA57]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader
           label="Curated Lifestyles"

@@ -42,8 +42,8 @@ export default function HeroSection() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 md:pt-6 pb-6 sm:pb-8 md:pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* ── Left Column: Editorial Brand Headline & CTAs (7 cols) ── */}
           <motion.div
@@ -53,10 +53,10 @@ export default function HeroSection() {
             className="lg:col-span-7 flex flex-col justify-center z-10"
           >
             {/* Royal Burgundy & Gold Pill Badge */}
-            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 mb-4 self-start">
-              <div className="px-4 py-1.5 rounded-full bg-[#591B2B] text-[#FFF9F0] border-2 border-[#D3AA57] shadow-md flex items-center gap-2">
-                <Sparkles size={13} className="text-[#F3E0A2] animate-pulse" />
-                <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.25em] uppercase text-[#F3E0A2]">
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 mb-3 self-start">
+              <div className="px-3.5 py-1.5 rounded-full bg-[#591B2B] text-[#FFF9F0] border-2 border-[#D3AA57] shadow-md flex items-center gap-2">
+                <Sparkles size={12} className="text-[#F3E0A2] animate-pulse" />
+                <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-[#F3E0A2]">
                   COIMBATORE'S COMPLETE SHOPPING DESTINATION
                 </span>
               </div>
@@ -65,12 +65,12 @@ export default function HeroSection() {
             {/* Required Exact Headline with Royal Geth & Class */}
             <motion.h1
               variants={itemVariants}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#301620] leading-[1.08] mb-6 tracking-tight"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-[#301620] leading-[1.1] mb-3 sm:mb-4 tracking-tight"
               style={{ fontFamily: 'var(--font-playfair)' }}
             >
               <span>Everything Beautiful,</span>
               <br />
-              <span className="text-[#A98243] italic font-normal inline-block mt-1">
+              <span className="text-[#A98243] italic font-normal inline-block mt-0.5">
                 All in One Place.
               </span>
             </motion.h1>
@@ -78,19 +78,19 @@ export default function HeroSection() {
             {/* Required Exact Description */}
             <motion.p
               variants={itemVariants}
-              className="text-sm sm:text-base md:text-lg text-[#422B24] leading-relaxed max-w-2xl mb-8 font-normal"
+              className="text-xs sm:text-sm md:text-base text-[#422B24] leading-relaxed max-w-2xl mb-5 font-normal"
             >
               Explore elegant jewellery, beautiful bangles, cosmetics and everyday fashion essentials at Sai Gold Covering.
             </motion.p>
 
             {/* Action Buttons: Gold Gradient + Direct WhatsApp to 9865132486 */}
-            <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-3.5 mb-10">
+            <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-3 mb-6 sm:mb-7">
               <Link
                 href="/shop"
-                className="btn-gold-royal inline-flex items-center gap-2.5 px-8 py-4 text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-xl"
+                className="btn-gold-royal inline-flex items-center gap-2 px-6 sm:px-7 py-3 text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-xl"
               >
                 <span>Explore Collections</span>
-                <ArrowRight size={15} />
+                <ArrowRight size={14} />
               </Link>
 
               {/* Direct WhatsApp to 9865132486 */}
@@ -98,16 +98,16 @@ export default function HeroSection() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-4 text-xs font-bold tracking-widest uppercase bg-[#25D366] text-white hover:bg-[#1EBE5D] transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 text-xs font-bold tracking-widest uppercase bg-[#25D366] text-white hover:bg-[#1EBE5D] transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
               >
-                <MessageCircle size={17} />
+                <MessageCircle size={16} />
                 <span>Order on WhatsApp</span>
               </a>
 
               {/* Shop New Arrivals */}
               <Link
                 href="/new-arrivals"
-                className="inline-flex items-center gap-2 px-6 py-4 text-xs font-bold tracking-widest uppercase bg-white border-2 border-[#591B2B] text-[#591B2B] hover:bg-[#591B2B] hover:text-white transition-all duration-300 shadow-sm"
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 text-xs font-bold tracking-widest uppercase bg-white border-2 border-[#591B2B] text-[#591B2B] hover:bg-[#591B2B] hover:text-white transition-all duration-300 shadow-sm"
               >
                 <span>New Arrivals</span>
               </Link>
@@ -116,34 +116,34 @@ export default function HeroSection() {
             {/* Trust Metrics Bar: Crisp Ivory & Gold Glass Container */}
             <motion.div
               variants={itemVariants}
-              className="grid grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-5 bg-white/90 border-2 border-[#D3AA57]/40 backdrop-blur-md shadow-lg"
+              className="grid grid-cols-3 gap-3 sm:gap-5 p-3.5 sm:p-4 bg-white/90 border-2 border-[#D3AA57]/40 backdrop-blur-md shadow-lg"
             >
-              <div className="border-r border-[#E8D8C8] pr-3 sm:pr-4">
-                <div className="flex items-center gap-1.5 text-[#591B2B] mb-1">
-                  <ShieldCheck size={16} className="text-[#A98243]" />
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold font-serif text-[#301620]">1-Gram</p>
+              <div className="border-r border-[#E8D8C8] pr-2.5 sm:pr-3">
+                <div className="flex items-center gap-1.5 text-[#591B2B] mb-0.5">
+                  <ShieldCheck size={15} className="text-[#A98243]" />
+                  <p className="text-base sm:text-lg md:text-xl font-bold font-serif text-[#301620]">1-Gram</p>
                 </div>
-                <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#762C43] font-semibold">
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#762C43] font-semibold">
                   Micro Gold Plated
                 </p>
               </div>
 
-              <div className="border-r border-[#E8D8C8] pr-3 sm:pr-4">
-                <div className="flex items-center gap-1.5 text-[#591B2B] mb-1">
-                  <Star size={16} className="fill-[#A98243] text-[#A98243]" />
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold font-serif text-[#301620]">500+</p>
+              <div className="border-r border-[#E8D8C8] pr-2.5 sm:pr-3">
+                <div className="flex items-center gap-1.5 text-[#591B2B] mb-0.5">
+                  <Star size={15} className="fill-[#A98243] text-[#A98243]" />
+                  <p className="text-base sm:text-lg md:text-xl font-bold font-serif text-[#301620]">500+</p>
                 </div>
-                <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#762C43] font-semibold">
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#762C43] font-semibold">
                   Curated Designs
                 </p>
               </div>
 
               <div>
-                <div className="flex items-center gap-1.5 text-[#591B2B] mb-1">
-                  <MapPin size={16} className="text-[#A98243]" />
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold font-serif text-[#301620]">Store</p>
+                <div className="flex items-center gap-1.5 text-[#591B2B] mb-0.5">
+                  <MapPin size={15} className="text-[#A98243]" />
+                  <p className="text-base sm:text-lg md:text-xl font-bold font-serif text-[#301620]">Store</p>
                 </div>
-                <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#762C43] font-semibold">
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#762C43] font-semibold">
                   Malumichampatti, CBE
                 </p>
               </div>
@@ -152,16 +152,16 @@ export default function HeroSection() {
           </motion.div>
 
           {/* ── Right Column: Majestic Multi-Layered Visual Showcase (5 cols) ── */}
-          <div className="lg:col-span-5 relative mt-6 lg:mt-0">
+          <div className="lg:col-span-5 relative mt-4 lg:mt-0">
             
             {/* Main Featured Showcase Card with Grand Gold Frame */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="relative p-2.5 bg-gradient-to-b from-[#ECC880] via-[#D3AA57] to-[#B88E3E] shadow-2xl"
+              className="relative p-2 bg-gradient-to-b from-[#ECC880] via-[#D3AA57] to-[#B88E3E] shadow-2xl"
             >
-              <div className="relative aspect-[16/10] min-h-[250px] sm:min-h-[290px] overflow-hidden group bg-white border border-[#FFF9F0]">
+              <div className="relative aspect-[16/10] overflow-hidden group bg-white border border-[#FFF9F0]">
                 <Image
                   src="/images/hero/hero-bridal-set.jpg"
                   alt="Grand Bridal and temple gold covering jewellery set"
@@ -175,29 +175,29 @@ export default function HeroSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#14050C]/90 via-transparent to-black/25 pointer-events-none" />
 
                 {/* Top Corner Badge */}
-                <div className="absolute top-3 left-3 bg-[#591B2B] text-white border border-[#D3AA57] px-3 py-1 flex items-center gap-1.5 shadow-md">
+                <div className="absolute top-2.5 left-2.5 bg-[#591B2B] text-white border border-[#D3AA57] px-2.5 py-0.5 flex items-center gap-1.5 shadow-md">
                   <Sparkles size={11} className="text-[#F3E0A2]" />
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#FFF9F0]">
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-[#FFF9F0]">
                     Bridal &amp; Temple Harams
                   </span>
                 </div>
 
                 {/* Bottom Title Bar */}
-                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 flex items-end justify-between">
+                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 flex items-end justify-between">
                   <div>
-                    <span className="text-[9px] uppercase tracking-widest text-[#F3E0A2] font-bold block mb-1">
+                    <span className="text-[9px] uppercase tracking-widest text-[#F3E0A2] font-bold block mb-0.5">
                       Pure 1-Gram Gold Polish
                     </span>
-                    <h3 className="text-lg sm:text-xl font-bold font-serif text-white">
+                    <h3 className="text-base sm:text-lg font-bold font-serif text-white">
                       Royal Bridal Necklace Sets
                     </h3>
                   </div>
                   <Link
                     href="/categories/necklaces"
-                    className="p-3 bg-gradient-to-r from-[#ECC880] to-[#D3AA57] text-[#1A0B10] hover:bg-white transition-colors rounded-none shrink-0 shadow-md font-bold"
+                    className="p-2 sm:p-2.5 bg-gradient-to-r from-[#ECC880] to-[#D3AA57] text-[#1A0B10] hover:bg-white transition-colors shrink-0 shadow-md font-bold"
                     aria-label="View Bridal Necklaces"
                   >
-                    <ArrowRight size={15} />
+                    <ArrowRight size={14} />
                   </Link>
                 </div>
               </div>
@@ -208,7 +208,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, x: -30, y: 20 }}
               animate={{ opacity: 1, x: 0, y: 0 }}
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="grid grid-cols-2 gap-3.5 mt-3.5"
+              className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-2.5 sm:mt-3"
             >
               {/* Colourful Bangles */}
               <Link

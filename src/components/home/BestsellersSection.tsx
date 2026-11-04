@@ -30,8 +30,8 @@ export default function BestsellersSection() {
   ];
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-5">
+    <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-5 sm:mb-7 gap-4">
         <SectionHeader
           label="Proven Customer Favourites"
           title="Bestsellers Showcase"

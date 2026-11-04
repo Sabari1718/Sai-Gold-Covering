@@ -19,7 +19,7 @@ export default function VisitOurStoreSection() {
   )}`;
 
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FAF4EA] to-white border-b border-[#D3AA57]/30" id="visit-store">
+    <section className="py-8 sm:py-12 bg-gradient-to-b from-[#FAF4EA] to-white border-b border-[#D3AA57]/30" id="visit-store">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader
           label="Physical Showroom Experience"

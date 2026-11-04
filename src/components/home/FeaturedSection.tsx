@@ -6,39 +6,39 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import SectionHeader from '@/components/common/SectionHeader';
 
-const THREE_BANNERS = [
+const FEATURED_HIGHLIGHTS = [
   {
     tag: 'Festive & Temple',
     title: 'Jewellery Collection',
-    description: 'Traditional gold covering chains, kasu malas, grand bridal haarams, and intricate kemp necklaces.',
-    image: '/images/products/necklaces/temple-jewellery-necklace.jpg',
+    subtitle: 'Pure 1-Gram Micro Gold Plated',
+    description: 'Traditional gold covering chains, kasu malas, grand bridal harams, and intricate antique kemp necklace sets.',
+    image: '/images/hero/hero-bridal-set.jpg',
     cta: 'Explore Jewellery',
     href: '/shop?category=necklaces',
-    accentColor: '#591B2B',
   },
   {
     tag: 'Wrist Elegance',
     title: 'Colourful Bangles Collection',
-    description: 'Textured 4-piece daily bangles, peacock kadas, festive glass dozens, and ruby-green stone stacks.',
-    image: '/images/products/bangles/colourful-glass-bangles.jpg',
+    subtitle: 'Festive Glass, Metal & Kundan Stacks',
+    description: 'Textured 4-piece daily bangles, peacock kadas, festive colourful glass dozens, and ruby-green stone sets.',
+    image: '/images/hero/hero-bangles.jpg',
     cta: 'Shop Bangles',
     href: '/shop?category=bangles',
-    accentColor: '#762C43',
   },
   {
     tag: 'Everyday Radiance',
     title: 'Cosmetics & Beauty Essentials',
-    description: 'Enriched velvet matte lipsticks, 24hr herbal smudge-proof kajal, SPF compacts, and kumkumadi skin glow.',
-    image: '/images/products/cosmetics/lipstick-collection.jpg',
+    subtitle: 'Enriched Beauty & Skincare Formulations',
+    description: 'Velvet matte lipsticks, 24hr smudge-proof herbal kajal, SPF compact powders, and kumkumadi daily skin glow.',
+    image: '/images/hero/hero-cosmetics.jpg',
     cta: 'Explore Cosmetics',
     href: '/shop?category=cosmetics',
-    accentColor: '#315D48',
   },
 ];
 
 export default function FeaturedSection() {
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FAF2E6] via-[#FFF9F0] to-[#FAF2E6] border-y border-[#D3AA57]/30">
+    <section className="pt-6 sm:pt-8 md:pt-10 pb-10 sm:pb-14 bg-gradient-to-b from-[#FAF4EA] via-[#FFFDF9] to-[#FAF4EA] border-y border-[#D3AA57]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader
           label="Handcrafted Highlights"
@@ -47,61 +47,65 @@ export default function FeaturedSection() {
           center
         />
 
-        {/* Three Promotional Banners with Royal Framing */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {THREE_BANNERS.map((banner, index) => (
+        {/* 3 Ultra-Crisp High-Quality Featured Collection Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-7">
+          {FEATURED_HIGHLIGHTS.map((item, index) => (
             <motion.div
-              key={banner.title}
-              initial={{ opacity: 0, y: 24 }}
+              key={item.title}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.12 }}
-              className="relative overflow-hidden group border-2 border-[#D3AA57]/40 hover:border-[#D3AA57] bg-[#1A0B10] shadow-lg hover:shadow-2xl hover:shadow-[#D3AA57]/20 flex flex-col justify-end min-h-[420px] sm:min-h-[460px] transition-all duration-500"
+              transition={{ duration: 0.45, delay: index * 0.1 }}
+              className="group flex flex-col bg-white border-2 border-[#E8D8C8] hover:border-[#D3AA57] rounded-sm overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#D3AA57]/20 transition-all duration-400"
             >
-              {/* Background Local Image */}
-              <Image
-                src={banner.image}
-                alt={banner.title}
-                fill
-                className="object-cover transition-transform duration-700 ease-out group-hover:scale-108 opacity-85 group-hover:opacity-100"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
+              {/* Ultra High-Resolution Image Container - 100% Brightness & Clarity */}
+              <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#FAF2E6]">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-106"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  priority={index === 0}
+                />
 
-              {/* Gradient Scrim */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#14050C] via-[#220E15]/60 to-transparent group-hover:from-[#1A0710] transition-colors duration-500" />
-
-              {/* Text Information Inside Banner */}
-              <div className="relative z-10 p-6 sm:p-7 text-[#FFF9F0]">
-                {/* Gold Pill Badge */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#ECC880] to-[#D3AA57] text-[#1A0B10] text-[10px] font-black uppercase tracking-wider mb-3 shadow-md">
-                  <Sparkles size={11} />
-                  <span>{banner.tag}</span>
-                </div>
-
-                <h3
-                  className="text-2xl sm:text-3xl font-bold mb-2.5 leading-tight group-hover:text-[#F3E0A2] transition-colors"
-                  style={{ fontFamily: 'var(--font-playfair)' }}
-                >
-                  {banner.title}
-                </h3>
-
-                <p className="text-xs sm:text-[13px] text-[#FFF9F0]/85 leading-relaxed mb-6 font-light">
-                  {banner.description}
-                </p>
-
-                <Link
-                  href={banner.href}
-                  className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#D3AA57] hover:text-white transition-colors group/btn"
-                >
-                  <span className="border-b border-[#D3AA57] pb-0.5 group-hover/btn:border-white">
-                    {banner.cta}
+                {/* Top Corner Floating Luxury Badge */}
+                <div className="absolute top-3 left-3 bg-[#591B2B] text-[#FFF9F0] border border-[#D3AA57] px-3 py-1 flex items-center gap-1.5 shadow-md">
+                  <Sparkles size={11} className="text-[#F3E0A2]" />
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-[#FFF9F0]">
+                    {item.tag}
                   </span>
-                  <ArrowRight size={14} className="transition-transform group-hover/btn:translate-x-1.5" />
-                </Link>
+                </div>
               </div>
 
-              {/* Gold Top Accent Line */}
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#D3AA57] to-transparent" />
+              {/* Clean Luxury Content Area Below Photo */}
+              <div className="p-5 sm:p-6 flex flex-col flex-grow justify-between bg-white text-left">
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-[#A98243] font-bold block mb-1">
+                    {item.subtitle}
+                  </span>
+
+                  <h3
+                    className="text-xl sm:text-2xl font-bold text-[#301620] mb-2 leading-snug group-hover:text-[#591B2B] transition-colors"
+                    style={{ fontFamily: 'var(--font-playfair)' }}
+                  >
+                    {item.title}
+                  </h3>
+
+                  <p className="text-xs sm:text-[13px] text-[#422B24]/80 leading-relaxed font-normal mb-5">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* Luxury Action Button */}
+                <Link
+                  href={item.href}
+                  className="w-full py-3 px-4 bg-[#FFF9F0] group-hover:bg-[#591B2B] border-2 border-[#591B2B] group-hover:border-[#591B2B] text-[#591B2B] group-hover:text-[#FFF9F0] font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
+                >
+                  <span>{item.cta}</span>
+                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
             </motion.div>
           ))}
         </div>

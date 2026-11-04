@@ -26,9 +26,9 @@ export default function NewArrivalsSection() {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FFF9F0] via-[#FAF2E6] to-[#FFF9F0] border-b border-[#D3AA57]/30">
+    <section className="py-8 sm:py-12 bg-gradient-to-b from-[#FFF9F0] via-[#FAF2E6] to-[#FFF9F0] border-b border-[#D3AA57]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-7 gap-4">
           <SectionHeader
             label="Seasonal Fresh Drops"
             title="New Arrivals Carousel"

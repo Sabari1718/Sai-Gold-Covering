@@ -80,7 +80,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Main Branding & Navigation Row */}
-        <div className="flex items-center justify-between h-20 md:h-24">
+        <div className="flex items-center justify-between h-16 sm:h-18 md:h-20">
           
           {/* Left: Mobile Menu Toggle / Location Badge on desktop */}
           <div className="flex items-center gap-2 sm:gap-4 lg:w-56 shrink-0">
@@ -195,7 +195,7 @@ export default function Header() {
         </AnimatePresence>
 
         {/* Desktop Navigation Row with Mega Menus */}
-        <nav className="hidden lg:flex items-center justify-center gap-8 py-3.5 border-t border-[#E8D8C8] text-xs tracking-[0.16em] uppercase font-bold text-[#33241F]">
+        <nav className="hidden lg:flex items-center justify-center gap-7 py-2 border-t border-[#E8D8C8] text-xs tracking-[0.14em] uppercase font-bold text-[#33241F]">
           {NAV_LINKS.map((item) => {
             if ('hasMega' in item && item.hasMega && 'megaItems' in item) {
               const isOpen = activeMega === item.label;
