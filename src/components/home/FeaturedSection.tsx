@@ -11,26 +11,26 @@ const FEATURED_HIGHLIGHTS = [
     tag: 'Festive & Temple',
     title: 'Jewellery Collection',
     subtitle: 'Pure 1-Gram Micro Gold Plated',
-    description: 'Traditional gold covering chains, kasu malas, grand bridal harams, and intricate antique kemp necklace sets.',
-    image: '/images/hero/hero-bridal-set.jpg',
+    description: 'Traditional gold covering chains, kasu malas, grand bridal harams, chokers, and intricate antique kemp necklace sets.',
+    image: '/images/featured/featured-jewellery.jpg',
     cta: 'Explore Jewellery',
     href: '/shop?category=necklaces',
   },
   {
     tag: 'Wrist Elegance',
     title: 'Colourful Bangles Collection',
-    subtitle: 'Festive Glass, Metal & Kundan Stacks',
+    subtitle: 'Covering | Fancy | Glass (Kanadi) Bangles',
     description: 'Textured 4-piece daily bangles, peacock kadas, festive colourful glass dozens, and ruby-green stone sets.',
-    image: '/images/hero/hero-bangles.jpg',
+    image: '/images/featured/featured-bangles.jpg',
     cta: 'Shop Bangles',
     href: '/shop?category=bangles',
   },
   {
     tag: 'Everyday Radiance',
     title: 'Cosmetics & Beauty Essentials',
-    subtitle: 'Enriched Beauty & Skincare Formulations',
-    description: 'Velvet matte lipsticks, 24hr smudge-proof herbal kajal, SPF compact powders, and kumkumadi daily skin glow.',
-    image: '/images/hero/hero-cosmetics.jpg',
+    subtitle: 'Makeup | Skincare | Fragrances | Accessories',
+    description: 'Velvet matte lipsticks, 24hr smudge-proof herbal kajal, SPF compact powders, hair care, and daily skin glow essentials.',
+    image: '/images/featured/featured-cosmetics.jpg',
     cta: 'Explore Cosmetics',
     href: '/shop?category=cosmetics',
   },
@@ -58,19 +58,19 @@ export default function FeaturedSection() {
               transition={{ duration: 0.45, delay: index * 0.1 }}
               className="group flex flex-col bg-white border-2 border-[#E8D8C8] hover:border-[#D3AA57] rounded-sm overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#D3AA57]/20 transition-all duration-400"
             >
-              {/* Ultra High-Resolution Image Container - 100% Brightness & Clarity */}
-              <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#FAF2E6]">
+              {/* Ultra High-Resolution Image Container (16:10 for perfect banner display) */}
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#FAF2E6]">
                 <Image
                   src={item.image}
                   alt={item.title}
                   fill
-                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-106"
+                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, 33vw"
                   priority={index === 0}
                 />
 
                 {/* Top Corner Floating Luxury Badge */}
-                <div className="absolute top-3 left-3 bg-[#591B2B] text-[#FFF9F0] border border-[#D3AA57] px-3 py-1 flex items-center gap-1.5 shadow-md">
+                <div className="absolute top-2.5 left-2.5 bg-[#591B2B] text-[#FFF9F0] border border-[#D3AA57] px-2.5 py-0.5 flex items-center gap-1.5 shadow-md z-10">
                   <Sparkles size={11} className="text-[#F3E0A2]" />
                   <span className="text-[9px] uppercase font-bold tracking-widest text-[#FFF9F0]">
                     {item.tag}
@@ -79,7 +79,7 @@ export default function FeaturedSection() {
               </div>
 
               {/* Clean Luxury Content Area Below Photo */}
-              <div className="p-5 sm:p-6 flex flex-col flex-grow justify-between bg-white text-left">
+              <div className="p-5 sm:p-5.5 flex flex-col flex-grow justify-between bg-white text-left">
                 <div>
                   <span className="text-[10px] uppercase tracking-widest text-[#A98243] font-bold block mb-1">
                     {item.subtitle}
