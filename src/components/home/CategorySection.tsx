@@ -32,13 +32,13 @@ export default function CategorySection() {
               className="group flex flex-col h-full bg-[#FCFAF7] border border-[#E8D8C8] hover:border-[#D3AA57] rounded-sm overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
               aria-label={`Shop ${cat.label}`}
             >
-              {/* Crisp Unobscured Photo Container */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FAF4EA]">
+              {/* Crisp Unobscured Photo Container (Square 1:1 for perfect graphics display) */}
+              <div className="relative aspect-square w-full overflow-hidden bg-[#FAF4EA]">
                 <Image
                   src={cat.image}
                   alt={cat.label}
                   fill
-                  className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-106"
+                  className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-104"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
                 />
 
